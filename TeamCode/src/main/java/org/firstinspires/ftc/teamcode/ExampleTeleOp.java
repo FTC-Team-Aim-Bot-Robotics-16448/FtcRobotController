@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.pedropathing.localization.Pose;
 
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 
@@ -31,15 +30,8 @@ public class ExampleTeleOp extends LinearOpMode{
                     telemetry.addData("Target Strafe offset", robot.vision.getTargetStrafeOffset());
                     telemetry.addData("Target Forward offset", robot.vision.getTargetForwardOffset());
                 }
+                telemetry.update();
             }
-            
-            // Display robot position from Pedro Pathing
-            Pose currentPose = robot.getDriveSubsystem().getPose();
-            telemetry.addData("Robot Position", "X: %.1f, Y: %.1f, H: %.1f°", 
-                currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-            telemetry.addData("Drive Mode", robot.getDriveSubsystem().isFieldCentric() ? "Field-Centric" : "Robot-Centric");
-            
-            telemetry.update();
 
         }
     }
