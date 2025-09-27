@@ -118,8 +118,10 @@ public class Vision {
         }
 
         // Calculate relative position
-        double relativeX = distance * Math.tan(Math.toRadians(tx));
-        double relativeY = distance;
+        //double relativeX = distance * Math.tan(Math.toRadians(tx));
+        //double relativeY = distance;
+        double relativeX = distance * Math.sin(Math.toRadians(tx)); // positive = right of robot
+        double relativeY = distance * Math.cos(Math.toRadians(tx)); // positive = in front of robot
 
          return new double[]{relativeX, relativeY};
     }
