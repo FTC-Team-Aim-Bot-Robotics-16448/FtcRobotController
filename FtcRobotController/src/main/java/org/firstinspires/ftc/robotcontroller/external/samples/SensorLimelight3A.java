@@ -67,7 +67,7 @@ import java.util.List;
  *   below the name of the Limelight on the top level configuration screen.
  */
 @TeleOp(name = "Sensor: Limelight3A", group = "Sensor")
-@Disabled
+//@Disabled
 public class SensorLimelight3A extends LinearOpMode {
 
     private Limelight3A limelight;
@@ -79,7 +79,7 @@ public class SensorLimelight3A extends LinearOpMode {
 
         telemetry.setMsTransmissionInterval(11);
 
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(9);
 
         /*
          * Starts polling for data.  If you neglect to call start(), getLatestResult() will return null.
@@ -132,7 +132,7 @@ public class SensorLimelight3A extends LinearOpMode {
                 // Access detector results
                 List<LLResultTypes.DetectorResult> detectorResults = result.getDetectorResults();
                 for (LLResultTypes.DetectorResult dr : detectorResults) {
-                    telemetry.addData("Detector", "Class: %s, Area: %.2f", dr.getClassName(), dr.getTargetArea());
+                    telemetry.addData("Detector", "Class: %s, Area: %.2f, TargetX: %.2f, TargetY: %.2f", dr.getClassName(), dr.getTargetArea(), dr.getTargetXDegrees(), dr.getTargetYDegrees());
                 }
 
                 // Access fiducial results

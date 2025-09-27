@@ -10,28 +10,28 @@ public class FConstants {
     static {
         FollowerConstants.localizers = Localizers.PINPOINT;
 
-       /* FollowerConstants.leftFrontMotorName = "frontLeftMotor";
+        FollowerConstants.leftFrontMotorName = "frontLeftMotor";
         FollowerConstants.leftRearMotorName = "backLeftMotor";
         FollowerConstants.rightFrontMotorName = "frontRightMotor";
         FollowerConstants.rightRearMotorName = "backRightMotor";
-        */
-        FollowerConstants.leftFrontMotorName = "frontLeftMotor"; //"backRightMotor";
-        FollowerConstants.leftRearMotorName = "backLeftMotor"; //""frontRightMotor";
-        FollowerConstants.rightFrontMotorName ="frontRightMotor"; //"backLeftMotor";
-        FollowerConstants.rightRearMotorName = "backRightMotor"; //frontLeftMotor";
 
-        FollowerConstants.leftFrontMotorDirection = DcMotorSimple.Direction.REVERSE;
-        FollowerConstants.leftRearMotorDirection = DcMotorSimple.Direction.REVERSE;
-        FollowerConstants.rightFrontMotorDirection = DcMotorSimple.Direction.FORWARD;
+        /*FollowerConstants.leftFrontMotorName = "backRightMotor";
+        FollowerConstants.leftRearMotorName = "frontRightMotor";
+        FollowerConstants.rightFrontMotorName = "backLeftMotor";
+        FollowerConstants.rightRearMotorName = "frontLeftMotor";
+        */
+        FollowerConstants.leftFrontMotorDirection = DcMotorSimple.Direction.FORWARD;
+        FollowerConstants.leftRearMotorDirection = DcMotorSimple.Direction.FORWARD;
+        FollowerConstants.rightFrontMotorDirection = DcMotorSimple.Direction.REVERSE;
         FollowerConstants.rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
 
-        FollowerConstants.mass = 13.35;
+        FollowerConstants.mass = 4.9; //13.35;
 
-        FollowerConstants.xMovement = 52.1043;
-        FollowerConstants.yMovement = 40.9187;
+        FollowerConstants.xMovement = 57.73; // 52.1043;
+        FollowerConstants.yMovement = 44.76; //40.9187;
 
-        FollowerConstants.forwardZeroPowerAcceleration = -44.703;
-        FollowerConstants.lateralZeroPowerAcceleration = -53.3467;
+        FollowerConstants.forwardZeroPowerAcceleration = -64; //-44.703;
+        FollowerConstants.lateralZeroPowerAcceleration = -63.8; //-53.3467;
 
         FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.1,0,0.01,0);
         FollowerConstants.useSecondaryTranslationalPID = false;

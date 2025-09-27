@@ -66,7 +66,7 @@ public class Robot {
     }
 
     private void initCamera() {
-        vision.init(this.opMode.hardwareMap, this.opMode.telemetry, 9,
+        vision.init(this.opMode.hardwareMap, this.opMode.telemetry, 8,
                 RobotConfig.cameraName, RobotConfig.cameraHeight, RobotConfig.cameraAngel,
                 RobotConfig.targetHeight);
     }
