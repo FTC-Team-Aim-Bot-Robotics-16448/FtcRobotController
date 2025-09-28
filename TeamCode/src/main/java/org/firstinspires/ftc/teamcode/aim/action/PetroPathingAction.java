@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.aim.action;
 
 import java.util.ArrayList;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.pathgen.Path;
+import com.pedropathing.paths.*;
 
 public class PetroPathingAction  extends Action {
     private Follower follower;

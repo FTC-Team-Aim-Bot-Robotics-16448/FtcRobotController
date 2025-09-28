@@ -28,7 +28,7 @@ public class RobotConfig {
     // camera
     public static boolean cameraEnabled = true;
     public static String cameraName = "limelight";
-    public static double cameraHeight = 290;
+    public static double cameraHeight = 282;
     public static double cameraAngel = 0;
     public static double targetHeight = 63.5;
 }
