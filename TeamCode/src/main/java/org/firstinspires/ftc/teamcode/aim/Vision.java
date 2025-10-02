@@ -2,9 +2,13 @@ package org.firstinspires.ftc.teamcode.aim;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
 import edu.wpi.first.math.MathUtil;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -16,22 +20,38 @@ public class Vision {
     double cameraHeight;
     double cameraAngle;
     double targetHeight;
+    private boolean isStarted = false;
 
-    public void init(final HardwareMap hardwareMap, Telemetry telemetry, int pipeline,
-                     String cameraName, double cameraHeight, double cameraAngle,
-                     double targetHeight) {
-        this.cameraHeight = cameraHeight;
-        this.cameraAngle = cameraAngle;
-        this.targetHeight = targetHeight;
+    public static class ObjectDetectionResult {
+        public double forwardOffset;
+        public double strafeOffset;
+    }
+
+    public void init(final HardwareMap hardwareMap, Telemetry telemetry, String cameraName) {
 
         camera = hardwareMap.get(Limelight3A.class, cameraName);
         this.telemetry = telemetry;
         //camera.setPollRateHz(50);
-        camera.pipelineSwitch(pipeline);
     }
 
-    public void start() {
+    public void startObjectDetection(int pipeline, double cameraHeight,
+                                     double cameraAngle, double targetHeight) {
+        if (this.isStarted) {
+            this.stop();
+        }
+        this.cameraHeight = cameraHeight;
+        this.cameraAngle = cameraAngle;
+        this.targetHeight = targetHeight;
+        camera.pipelineSwitch(pipeline);
         camera.start();
+        this.isStarted = true;
+    }
+
+    public void stop() {
+        if (this.isStarted) {
+            camera.stop();
+            this.isStarted = false;
+        }
     }
 
     public double getTx(double defaultValue) {
@@ -54,41 +74,41 @@ public class Vision {
         }
         return result.toString();  // Returns raw JSON string with 'pts' data
     }
-    
+
     public double calculateOrientation() {
         String json = getRawJSON();
         if (json.isEmpty()) {
             return 0.0;
         }
-        
+
         try {
             JSONObject jsonObj = new JSONObject(json);
-            
+
             if (!jsonObj.has("pts")) {
                 return 0.0; // No pts data found
             }
-            
+
             JSONArray ptsArray = jsonObj.getJSONArray("pts");
             if (ptsArray.length() < 4) {
                 return 0.0; // Need at least 4 values (2 points)
             }
-            
+
             // Extract first two points: [x0,y0,x1,y1,...]
             double x0 = ptsArray.getDouble(0);
             double y0 = ptsArray.getDouble(1);
             double x1 = ptsArray.getDouble(2);
             double y1 = ptsArray.getDouble(3);
-            
+
             // Calculate angle of first edge
             double angleRadians = Math.atan2(y1 - y0, x1 - x0);
             double angleDegrees = Math.toDegrees(angleRadians);
-            
+
             // Normalize to -90 to +90 degrees
             while (angleDegrees > 90) angleDegrees -= 180;
             while (angleDegrees < -90) angleDegrees += 180;
-            
+
             return angleDegrees;
-            
+
         } catch (Exception e) {
             return 0.0; // JSON parsing error
         }
@@ -104,7 +124,6 @@ public class Vision {
     private double[] calTargetPosition(double tx, double ty) {
         // Adjust ty for camera mount angle
         double tyAdjusted = ty + this.cameraAngle;
-
         // Height difference (camera is ABOVE target)
         double heightDiff = this.cameraHeight - this.targetHeight;  // This will be positive
 
@@ -118,12 +137,10 @@ public class Vision {
         }
 
         // Calculate relative position
-        //double relativeX = distance * Math.tan(Math.toRadians(tx));
-        //double relativeY = distance;
         double relativeX = distance * Math.sin(Math.toRadians(tx)); // positive = right of robot
         double relativeY = distance * Math.cos(Math.toRadians(tx)); // positive = in front of robot
 
-         return new double[]{relativeX, relativeY};
+        return new double[]{relativeX, relativeY};
     }
 
     public double[] getTargetPosition() {
@@ -140,7 +157,22 @@ public class Vision {
         return pos[0];
     }
 
+    public Vision.ObjectDetectionResult getObjectDetectionResult() {
+        if (result == null) {
+            return null;
+        }
+        Vision.ObjectDetectionResult r = new Vision.ObjectDetectionResult();
+        double pos[] = getTargetPosition();
+        r.forwardOffset = pos[1];
+        r.strafeOffset = pos[0];
+        result = null;
+        return r;
+    }
+
     public void update() {
+        if (!this.isStarted) {
+            return;
+        }
         LLResult tmpResult = camera.getLatestResult();
         if (tmpResult != null && tmpResult.isValid()) {
             result = tmpResult;

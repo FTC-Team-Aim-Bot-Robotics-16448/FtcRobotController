@@ -31,4 +31,8 @@ public class RobotConfig {
     public static double cameraHeight = 282;
     public static double cameraAngel = 0;
     public static double targetHeight = 63.5;
+    public static int limeLightDetectBallPipeLine = 8;
+    public static double cameraToCentorStrafe = -80; // on left of center
+    public static double cameraToCentorForward = 120; // on left of center
+    public static double intakeToCenterForward = 240; //  forward of center
 }

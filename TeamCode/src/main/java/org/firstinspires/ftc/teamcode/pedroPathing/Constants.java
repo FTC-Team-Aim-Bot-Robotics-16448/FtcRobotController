@@ -23,10 +23,10 @@ public class Constants {
             .useSecondaryHeadingPIDF(false)
             .useSecondaryDrivePIDF(false)
             .centripetalScaling(0.0005)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.12, 0, 0.01, 0))
             .headingPIDFCoefficients(new PIDFCoefficients(2, 0, 0.1, 0))
             .drivePIDFCoefficients(
-                    new FilteredPIDFCoefficients(0.01, 0, 0.0001, 0.6, 0)
+                    new FilteredPIDFCoefficients(0.01, 0, 0.0001, 0.6, 0.05)
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -42,8 +42,8 @@ public class Constants {
             .yVelocity(44.76);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-2.933)
-            .strafePodX(-9.016)
+            .forwardPodY(2.933)
+            .strafePodX(-8.465)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
            // .yawScalar(1.0)
@@ -55,7 +55,7 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.995,
+            0.985,
             50,
             1,
             1
