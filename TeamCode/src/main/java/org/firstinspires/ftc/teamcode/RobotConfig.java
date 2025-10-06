@@ -35,4 +35,14 @@ public class RobotConfig {
     public static double cameraToCentorStrafe = -80; // on left of center
     public static double cameraToCentorForward = 120; // on left of center
     public static double intakeToCenterForward = 240; //  forward of center
+
+    // Limelight 3A lens parameters
+    public static double cameraHorizontalFOV = 54.5; // degrees
+    public static double cameraVerticalFOV = 42.0; // degrees
+
+    // Ball detection filters
+    public static double ballDiameter = 127; // mm, actual ball diameter
+    public static double ballTaTolerance = 0.3; // tolerance ratio for ta validation (±30%)
+    public static double maxBallDetectionX = 1500; // mm, max absolute strafe offset
+    public static double maxBallDetectionY = 2000; // mm, max absolute forward offset
 }

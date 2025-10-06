@@ -79,7 +79,7 @@ public class SensorLimelight3A extends LinearOpMode {
 
         telemetry.setMsTransmissionInterval(11);
 
-        limelight.pipelineSwitch(9);
+        limelight.pipelineSwitch(8);
 
         /*
          * Starts polling for data.  If you neglect to call start(), getLatestResult() will return null.
@@ -116,6 +116,7 @@ public class SensorLimelight3A extends LinearOpMode {
                 telemetry.addData("tync", result.getTyNC());
 
                 telemetry.addData("Botpose", botpose.toString());
+                telemetry.addData("tallness", result.getStaleness());
 
                 // Access barcode results
                 List<LLResultTypes.BarcodeResult> barcodeResults = result.getBarcodeResults();

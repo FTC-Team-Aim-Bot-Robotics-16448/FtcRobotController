@@ -27,10 +27,15 @@ public abstract class Action {
         return started;
     }
 
+    public void start() {
+        this.finished = run();
+    }
+
     public void update() {
-        if (isStarted()) {
-            this.finished = run();
+        if (isFinished()) {
+            return;
         }
+        this.finished = run();
     }
 
     public boolean isFinished() {

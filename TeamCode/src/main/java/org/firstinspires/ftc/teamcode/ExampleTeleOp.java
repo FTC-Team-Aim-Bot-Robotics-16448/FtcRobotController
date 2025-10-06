@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
-
+import com.pedropathing.geometry.BezierPoint;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 import com.pedropathing.follower.Follower;
@@ -28,7 +26,7 @@ public class ExampleTeleOp extends LinearOpMode{
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0)); // Start Pose of our robot.
     private Pose targetPose = null; // Start Pose of our robot.
 
-    private Action balltrackingAction;
+    private Action balltrackingAction = null;
 
     private void doInit() {
         follower = Constants.createFollower(hardwareMap);
@@ -49,23 +47,25 @@ public class ExampleTeleOp extends LinearOpMode{
 
     private void startBallTracking() {
         this.balltrackingAction = robot.createBallTrackingAction();
-        this.balltrackingAction.run();
+        this.balltrackingAction.start();
     }
 
     private void updateBallTracking() {
-        if (this.balltrackingAction != null) {
-            this.balltrackingAction.update();
-            telemetry.addData("ball pose", this.balltrackingAction.toString());
-            if (this.balltrackingAction.isFinished()) {
-                telemetry.addData("Status", "Tracking is done!!!");
-                telemetry.addData("X:Y", "%f:%f", robot.follower.getPose().getX(), robot.follower.getPose().getY());
-                this.balltrackingAction = null;
-                telemetry.update();
-            } else {
-                telemetry.addData("Status", "Tracking is running");
-                telemetry.update();
-            }
+        if (this.balltrackingAction == null) {
+            return;
         }
+        this.balltrackingAction.update();
+        telemetry.addData("Status", this.balltrackingAction.toString());
+        if (this.balltrackingAction.isFinished()) {
+            telemetry.addData("Status", "Tracking is done!!!");
+        } else {
+            telemetry.addData("Status", "Tracking is running");
+        }
+        telemetry.addData("X:Y", "%f:%f: %f",
+                robot.follower.getPose().getX(), robot.follower.getPose().getY(),
+                Math.toDegrees(robot.follower.getHeading()));
+        telemetry.update();
+
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ExampleTeleOp extends LinearOpMode{
             if (this.testButton.isPressed()) {
                 telemetry.addData("button", "pressed %d", i++);
                 if (this.balltrackingAction == null) {
-                    startBallTracking();
+                     startBallTracking();
                 }
                 telemetry.update();
 

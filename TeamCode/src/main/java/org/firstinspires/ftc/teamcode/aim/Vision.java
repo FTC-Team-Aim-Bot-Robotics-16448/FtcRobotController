@@ -25,6 +25,9 @@ public class Vision {
     public static class ObjectDetectionResult {
         public double forwardOffset;
         public double strafeOffset;
+        public double ta; // target area percentage
+        public double tx; // horizontal offset
+        public double ty; // vertical offset
     }
 
     public void init(final HardwareMap hardwareMap, Telemetry telemetry, String cameraName) {
@@ -42,8 +45,9 @@ public class Vision {
         this.cameraHeight = cameraHeight;
         this.cameraAngle = cameraAngle;
         this.targetHeight = targetHeight;
-        camera.pipelineSwitch(pipeline);
         camera.start();
+        camera.pipelineSwitch(pipeline);
+
         this.isStarted = true;
     }
 
@@ -165,6 +169,9 @@ public class Vision {
         double pos[] = getTargetPosition();
         r.forwardOffset = pos[1];
         r.strafeOffset = pos[0];
+        r.ta = result.getTa();
+        r.tx = result.getTx();
+        r.ty = result.getTy();
         result = null;
         return r;
     }
