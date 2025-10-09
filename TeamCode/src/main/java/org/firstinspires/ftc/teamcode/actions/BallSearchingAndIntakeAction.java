@@ -17,6 +17,7 @@ public class BallSearchingAndIntakeAction extends Action{
     private final Robot robot;
     private int status = 0;
     private Pose ballPose = null;
+    Vision.ObjectDetectionResult lastDetRet = null;
     private int totalRotationDegrees = 0; // Track total rotation during search
     private String detectionStatus = "searching"; // Track detection status for debug
     private boolean detectionChecked = false; // Track if we already checked for detection this cycle
@@ -48,6 +49,9 @@ public class BallSearchingAndIntakeAction extends Action{
                     ballPose.getX(),
                     ballPose.getY(),
                     Math.toDegrees(ballPose.getHeading()));
+            result += ", off=" + String.format("(%.1f, %.1f)",
+                    lastDetRet.forwardOffset,
+                    lastDetRet.strafeOffset);
         }
 
         result += "]";
@@ -161,6 +165,7 @@ public class BallSearchingAndIntakeAction extends Action{
         switch (this.status) {
             case 0: { // detect ball while stationary
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
+                this.lastDetRet = detectionRet;
                 if (isValidBallDetection(detectionRet)) {
                     // Valid ball detected - proceed to calculate target pose
                     double forwardOffset = detectionRet.forwardOffset + RobotConfig.cameraToCentorForward;
@@ -212,25 +217,14 @@ public class BallSearchingAndIntakeAction extends Action{
                 this.robot.follower.followPath(driveToBallPath, 0.5, true);*/
 
                 // Calculate heading to face the ball
-                double targetHeading = Math.atan2(
+                /*double targetHeading = Math.atan2(
                         ballPose.getY() - this.robot.follower.getPose().getY(),
                         ballPose.getX() - this.robot.follower.getPose().getX()
-                );
+                );*/
 
                 // Turn to face the ball without moving
-               /* Pose turnPose = new Pose(
-                        this.robot.follower.getPose().getX(),
-                        this.robot.follower.getPose().getY(),
-                        targetHeading
-                );
-                PathChain turnToBall = this.robot.follower.pathBuilder()
-                        .addPath(new BezierPoint(turnPose))
-                        .setLinearHeadingInterpolation(this.robot.follower.getHeading(), targetHeading)
-                        .build();
-                this.robot.follower.followPath(turnToBall, 0.5, true);*/
-
                 this.turnAction = new PedroPathingTurnAction("turnToBall",
-                        this.robot.follower, targetHeading, false);
+                        this.robot.follower, ballPose.getHeading(), true);
                 this.turnAction.start();
 
                 this.status = 3;
