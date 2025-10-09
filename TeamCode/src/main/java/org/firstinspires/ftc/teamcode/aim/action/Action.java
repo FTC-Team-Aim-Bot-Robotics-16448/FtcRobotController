@@ -1,15 +1,15 @@
 package org.firstinspires.ftc.teamcode.aim.action;
 
-public class Action {
+public abstract class Action {
     private String name;
     private boolean started = false;
+    private boolean finished = false;
+
     public Action(String name) {
         this.name = name;
 
     }
-    public boolean run() {
-        return true;
-    }
+    public abstract boolean run();
 
     public String toString() {
         return name;
@@ -25,5 +25,20 @@ public class Action {
 
     protected boolean isStarted() {
         return started;
+    }
+
+    public void start() {
+        this.finished = run();
+    }
+
+    public void update() {
+        if (isFinished()) {
+            return;
+        }
+        this.finished = run();
+    }
+
+    public boolean isFinished() {
+        return this.finished;
     }
 }
