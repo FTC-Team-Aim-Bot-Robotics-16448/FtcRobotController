@@ -18,6 +18,17 @@ public class PedroPathingTurnAction extends Action {
         this.turnToRad = turnToRad;
     }
 
+    public PedroPathingTurnAction(String name, Follower f,
+                                  double targetX, double targetY, boolean holdEnd) {
+        super(name);
+        follower = f;
+        this.holdEnd = holdEnd;
+
+        double deltaY = targetY - this.follower.getPose().getY();
+        double deltaX = targetX - this.follower.getPose().getX();
+        this.turnToRad = Math.atan2(deltaY, deltaX);
+    }
+
     private boolean isTurnFinished() {
         if (follower.isBusy()) {
             return false;
