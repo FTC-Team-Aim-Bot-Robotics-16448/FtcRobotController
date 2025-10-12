@@ -25,6 +25,7 @@ public class Vision {
     public static class ObjectDetectionResult {
         public double forwardOffset;
         public double strafeOffset;
+        public double distance;
         public double ta; // target area percentage
         public double tx; // horizontal offset
         public double ty; // vertical offset
@@ -144,7 +145,7 @@ public class Vision {
         double relativeX = distance * Math.sin(Math.toRadians(tx)); // positive = right of robot
         double relativeY = distance * Math.cos(Math.toRadians(tx)); // positive = in front of robot
 
-        return new double[]{relativeX, relativeY};
+        return new double[]{relativeX, relativeY, distance};
     }
 
     public double[] getTargetPosition() {
@@ -169,6 +170,7 @@ public class Vision {
         double pos[] = getTargetPosition();
         r.forwardOffset = pos[1];
         r.strafeOffset = pos[0];
+        r.distance = pos[2];
         r.ta = result.getTa();
         r.tx = result.getTx();
         r.ty = result.getTy();

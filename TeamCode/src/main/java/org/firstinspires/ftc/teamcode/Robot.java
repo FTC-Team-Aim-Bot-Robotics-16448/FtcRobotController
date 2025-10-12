@@ -137,6 +137,11 @@ public class Robot {
         return new BallSearchingAndIntakeAction(this);
     }
 
+    public AirTagTrackingAction createAirTagTrackingAction() {
+        return new AirTagTrackingAction(this, 0,
+                RobotConfig.goalAirTagX, RobotConfig.goaAirTagY, RobotConfig.goalAirTagHeight);
+    }
+
     public void update() {
         handleRobotMove();
         if (RobotConfig.cameraEnabled) {
