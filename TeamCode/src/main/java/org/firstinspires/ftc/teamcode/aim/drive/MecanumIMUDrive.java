@@ -24,6 +24,8 @@ public class MecanumIMUDrive {
 
     private double moveTargetHeading = 0;
     private boolean stopped = true;
+    private DcMotor.RunMode oldMotorMode;
+    private DcMotor.ZeroPowerBehavior oldBehav;
 
     public class InitParams {
         public LinearOpMode opMode;
@@ -42,10 +44,10 @@ public class MecanumIMUDrive {
         return new InitParams();
     }
 
-    private void initDriveMotor(DcMotor motor) {
+    private void initDriveMotor(DcMotor motor, DcMotor.RunMode mode, DcMotor.ZeroPowerBehavior behav ) {
+        motor.setZeroPowerBehavior(behav);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motor.setMode(mode);
     }
 
     public void init(InitParams params) {
@@ -59,12 +61,24 @@ public class MecanumIMUDrive {
         imu = curOpMode.hardwareMap.get(IMU.class, params.imuName);
         debug = params.debug;
 
-        initDriveMotor(frontLeftDrive);
-        initDriveMotor(frontRightDrive);
-        initDriveMotor(backLeftDrive);
-        initDriveMotor(backRightDrive);
-
+        this.oldMotorMode = frontLeftDrive.getMode();
+        this.oldBehav = frontLeftDrive.getZeroPowerBehavior();
+        setupWheels();
         this.moveTargetHeading = this.getHeading();
+    }
+
+    public void setupWheels() {
+        initDriveMotor(frontLeftDrive, DcMotor.RunMode.RUN_USING_ENCODER, DcMotor.ZeroPowerBehavior.BRAKE);
+        initDriveMotor(frontRightDrive, DcMotor.RunMode.RUN_USING_ENCODER, DcMotor.ZeroPowerBehavior.BRAKE);
+        initDriveMotor(backLeftDrive, DcMotor.RunMode.RUN_USING_ENCODER, DcMotor.ZeroPowerBehavior.BRAKE);
+        initDriveMotor(backRightDrive, DcMotor.RunMode.RUN_USING_ENCODER, DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    public void restoreWheels() {
+        initDriveMotor(frontLeftDrive, this.oldMotorMode, this.oldBehav);
+        initDriveMotor(frontRightDrive, this.oldMotorMode, this.oldBehav);
+        initDriveMotor(backLeftDrive, this.oldMotorMode, this.oldBehav);
+        initDriveMotor(backRightDrive, this.oldMotorMode, this.oldBehav);
     }
 
     /**
