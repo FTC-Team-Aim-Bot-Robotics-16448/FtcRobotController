@@ -22,7 +22,7 @@ public class Robot {
     private LinearOpMode opMode;
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
-    private boolean manualDriveEnabled = true;
+    private boolean manualDriveEnabled = false;
 
     public Vision vision = new Vision();
     public Follower follower;
@@ -76,7 +76,11 @@ public class Robot {
         if (this.manualDriveEnabled) {
             return;
         }
-        this.driveCtrl.setupWheels();
+        if (RobotConfig.usePetroPathingManualDrive) {
+            this.follower.startTeleopDrive(true);
+        } else {
+            this.driveCtrl.setupWheels();
+        }
         this.manualDriveEnabled = true;
     }
 
@@ -84,15 +88,19 @@ public class Robot {
         if (!this.manualDriveEnabled) {
             return;
         }
-        this.driveCtrl.restoreWheels();
+        if (!RobotConfig.usePetroPathingManualDrive) {
+            this.driveCtrl.restoreWheels();
+        }
         this.manualDriveEnabled = false;
     }
 
     public void init(LinearOpMode opMode, Pose startPos) {
         this.opMode = opMode;
-        this.initImu();
-        this.initWheels();
-        this.initMecanumIMUDrive();
+        if (!RobotConfig.usePetroPathingManualDrive) {
+            this.initImu();
+            this.initWheels();
+            this.initMecanumIMUDrive();
+        }
         this.initOdometry(startPos);
 
         if (RobotConfig.cameraEnabled) {
@@ -101,6 +109,7 @@ public class Robot {
     }
 
     public void start() {
+        this.enableManualDrive();
     }
 
     public void handleRobotMove() {
@@ -115,14 +124,14 @@ public class Robot {
             botDirection = -1;
         }
         double power = 0, x = 0, y = 0, turn = 0;
-        double smallTurn = 0.5, bigTurn = 2;
+        double smallTurn = 0.3, bigTurn = 0.6;
 
         if (this.opMode.gamepad1.left_stick_x != 0 || this.opMode.gamepad1.left_stick_y != 0) {
             power = 0.5;
             x = (botDirection)*this.opMode.gamepad1.left_stick_x;
             y = -(botDirection)*this.opMode.gamepad1.left_stick_y;
         } else if (this.opMode.gamepad1.right_stick_x != 0 || this.opMode.gamepad1.right_stick_y != 0) {
-            power = 3;
+            power = 1;
             x = (botDirection)*this.opMode.gamepad1.right_stick_x;
             y = -(botDirection)*this.opMode.gamepad1.right_stick_y;
         }
@@ -137,7 +146,11 @@ public class Robot {
             turn = -smallTurn;
         }
 
-        this.driveCtrl.moveByPower(power, x, y, turn);
+        if (RobotConfig.usePetroPathingManualDrive) {
+            this.follower.setTeleOpDrive(y * power, -x * power, turn, true);
+        } else {
+            this.driveCtrl.moveByPower(power, x, y, turn);
+        }
     }
 
     public BallSearchingAndIntakeAction createBallTrackingAction() {
@@ -152,12 +165,10 @@ public class Robot {
     }
 
     public void update() {
-        if (manualDriveEnabled) {
-            handleRobotMove();
-        }
+        follower.update();
+        handleRobotMove();
         if (RobotConfig.cameraEnabled) {
             vision.update();
         }
-        follower.update();
-    }
+   }
 }

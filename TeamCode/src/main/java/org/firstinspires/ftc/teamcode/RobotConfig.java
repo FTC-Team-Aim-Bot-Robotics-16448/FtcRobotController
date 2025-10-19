@@ -19,6 +19,7 @@ public class RobotConfig {
     public static double countPerMotorRev = 537.7;
     public static double driveGearReduction = 1.0;
     public static double wheelDiameterInches = 4.0;
+    public static boolean usePetroPathingManualDrive = true;
 
     // IMU config
     public static String imuName = "imu";
