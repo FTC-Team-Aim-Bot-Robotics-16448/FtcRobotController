@@ -16,11 +16,7 @@ import org.firstinspires.ftc.teamcode.RobotConfig;
 public class AirTagTrackingAction extends Action{
     private final Robot robot;
     private int status = 0;
-    private Pose ballPose = null;
     Vision.ObjectDetectionResult lastDetRet = null;
-    private int totalRotationDegrees = 0; // Track total rotation during search
-    private String detectionStatus = "searching"; // Track detection status for debug
-    private boolean detectionChecked = false; // Track if we already checked for detection this cycle
     private Action turnAction = null;
     private long timer = System.currentTimeMillis();
     private double airTagX, airTagY;
@@ -29,11 +25,12 @@ public class AirTagTrackingAction extends Action{
 
     public AirTagTrackingAction(Robot robot, int limelightPipeLine,
                                 double airTagX, double airTagY, double airTagHeight) {
-        super("searchAndIntake");
+        super("AirTagTracking");
         this.robot = robot;
         this.airTagX = airTagX;
         this.airTagY = airTagY;
         this.pipeline = limelightPipeLine;
+        this.airTagHeight = airTagHeight;
     }
     public String toString() {
         String statusName;
@@ -45,12 +42,14 @@ public class AirTagTrackingAction extends Action{
         }
 
         String result = super.toString() +
-                " [state=" + statusName +
-                ", rotated=" + totalRotationDegrees + "°" +
-                ", detection=" + detectionStatus;
+                " [state=" + statusName;
 
         if (this.lastDetRet != null) {
-            result += String.format(", airtag distance = (%.2f°) ", this.lastDetRet.distance);
+            result += String.format(", airtag distance = (%.2f) id = %d",
+                    this.lastDetRet.distance, this.lastDetRet.airTagID);
+        }
+        if (this.turnAction != null) {
+            result += String.format(", turn_status=%s ", this.turnAction.toString());
         }
         result += "]";
 
@@ -59,7 +58,6 @@ public class AirTagTrackingAction extends Action{
 
     private void cleanup() {
         this.robot.vision.stop();
-        this.robot.follower.breakFollowing();
     }
 
     private void resetTimer() {
@@ -78,30 +76,28 @@ public class AirTagTrackingAction extends Action{
 
     @Override
     public boolean run() {
-        if (!this.isStarted()) {
-           this.robot.vision.startObjectDetection(this.pipeline, RobotConfig.cameraHeight,
-                    RobotConfig.cameraAngel, this.airTagHeight);
-            this.markStarted();
-            this.resetTimer();
-            return false;
-        }
         switch (this.status) {
-            case 0: {
+            case 0:
                 this.turnAction = new PedroPathingTurnAction("turnToAirTag",
-                        this.robot.follower, this.airTagX, this.airTagY, true);
+                        this.robot.follower,
+                        DistanceUnit.INCH.fromMm(this.airTagX),
+                        DistanceUnit.INCH.fromMm(this.airTagY), true);
                 this.turnAction.start();
                 this.status = 1;
+                this.markStarted();
                 break;
-            }
-            case 1: { // wait for turn to complete, then go back to detection
+            case 1: // wait for turn to complete, then go back to detection
                 this.turnAction.update();
                 if (this.turnAction.isFinished()) {
+                    this.robot.vision.startObjectDetection(this.pipeline, RobotConfig.cameraHeight,
+                            RobotConfig.cameraAngel, this.airTagHeight);
+                    this.robot.follower.breakFollowing();
                     this.status = 2;
-                    this.resetTimer();
+                    return true;
+                    //this.resetTimer();
                 }
                 break;
-            }
-            case 2: { // detect ball while stationary
+            case 2: // get AprilTag result
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
                 this.lastDetRet = detectionRet;
                 if (detectionRet != null) {
@@ -109,7 +105,6 @@ public class AirTagTrackingAction extends Action{
                     return true;
                 }
                 break;
-            }
         }
         return false;
     }

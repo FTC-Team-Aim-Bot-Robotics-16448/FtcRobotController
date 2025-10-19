@@ -37,9 +37,9 @@ public class RobotConfig {
     public static double intakeToCenterForward = 240; //  forward of center
 
     public static int limeLightGoalAirTaglPipeLine = 0;
-    public static double goalAirTagHeight = 63.5;
-    public static double goalAirTagX = 10; // inch
-    public static double goaAirTagY = 140; // inch
+    public static double goalAirTagHeight =  477; // mm
+    public static double goalAirTagX = 1387; // mm
+    public static double goalAirTagY = 2112; // mm
 
     // Limelight 3A lens parameters
     public static double cameraHorizontalFOV = 54.5; // degrees

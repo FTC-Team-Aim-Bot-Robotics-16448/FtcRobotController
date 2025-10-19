@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.aim.Vision;
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
@@ -21,6 +22,7 @@ public class Robot {
     private LinearOpMode opMode;
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
+    private boolean manualDriveEnabled = true;
 
     public Vision vision = new Vision();
     public Follower follower;
@@ -29,12 +31,6 @@ public class Robot {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
         imu = this.opMode.hardwareMap.get(IMU.class, RobotConfig.imuName);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
-    }
-
-    private void initDriveMotor(DcMotor motor) {
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     private void initWheels() {
@@ -47,11 +43,6 @@ public class Robot {
         this.backLeftMotor.setDirection(RobotConfig.backLeftWheelDirection);
         this.frontRightMotor.setDirection(RobotConfig.frontRightWheelDirection);
         this.backLeftMotor.setDirection(RobotConfig.backLeftWheelDirection);
-
-        initDriveMotor(this.frontLeftMotor);
-        initDriveMotor(this.frontRightMotor);
-        initDriveMotor(this.backLeftMotor);
-        initDriveMotor(this.backRightMotor);
     }
 
     private void initMecanumIMUDrive() {
@@ -79,6 +70,22 @@ public class Robot {
         follower = Constants.createFollower(this.opMode.hardwareMap);
         follower.setStartingPose(startPose);
         follower.update();
+    }
+
+    public void enableManualDrive() {
+        if (this.manualDriveEnabled) {
+            return;
+        }
+        this.driveCtrl.setupWheels();
+        this.manualDriveEnabled = true;
+    }
+
+    public void disableManualDrive() {
+        if (!this.manualDriveEnabled) {
+            return;
+        }
+        this.driveCtrl.restoreWheels();
+        this.manualDriveEnabled = false;
     }
 
     public void init(LinearOpMode opMode, Pose startPos) {
@@ -139,11 +146,15 @@ public class Robot {
 
     public AirTagTrackingAction createAirTagTrackingAction() {
         return new AirTagTrackingAction(this, 0,
-                RobotConfig.goalAirTagX, RobotConfig.goaAirTagY, RobotConfig.goalAirTagHeight);
+                RobotConfig.goalAirTagX,
+                RobotConfig.goalAirTagY,
+                RobotConfig.goalAirTagHeight);
     }
 
     public void update() {
-        handleRobotMove();
+        if (manualDriveEnabled) {
+            handleRobotMove();
+        }
         if (RobotConfig.cameraEnabled) {
             vision.update();
         }
