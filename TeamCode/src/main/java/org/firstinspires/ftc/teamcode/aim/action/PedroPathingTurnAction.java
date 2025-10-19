@@ -57,7 +57,7 @@ public class PedroPathingTurnAction extends Action {
         PathChain turnPath =follower.pathBuilder()
                 .addPath(new BezierPoint(targetPos))
                 .setLinearHeadingInterpolation(
-                        follower.getHeading(), targetPos.getHeading()).setTimeoutConstraint(300)
+                        follower.getHeading(), targetPos.getHeading()).setTimeoutConstraint(1000)
                 .build();
         follower.followPath(turnPath, this.holdEnd);
      }
