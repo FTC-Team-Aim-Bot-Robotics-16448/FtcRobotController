@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.aim.Vision;
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
@@ -21,6 +22,7 @@ public class Robot {
     private LinearOpMode opMode;
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
+    private boolean manualDriveEnabled = false;
 
     public Vision vision = new Vision();
     public Follower follower;
@@ -29,12 +31,6 @@ public class Robot {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
         imu = this.opMode.hardwareMap.get(IMU.class, RobotConfig.imuName);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
-    }
-
-    private void initDriveMotor(DcMotor motor) {
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     private void initWheels() {
@@ -47,11 +43,6 @@ public class Robot {
         this.backLeftMotor.setDirection(RobotConfig.backLeftWheelDirection);
         this.frontRightMotor.setDirection(RobotConfig.frontRightWheelDirection);
         this.backLeftMotor.setDirection(RobotConfig.backLeftWheelDirection);
-
-        initDriveMotor(this.frontLeftMotor);
-        initDriveMotor(this.frontRightMotor);
-        initDriveMotor(this.backLeftMotor);
-        initDriveMotor(this.backRightMotor);
     }
 
     private void initMecanumIMUDrive() {
@@ -81,11 +72,35 @@ public class Robot {
         follower.update();
     }
 
+    public void enableManualDrive() {
+        if (this.manualDriveEnabled) {
+            return;
+        }
+        if (RobotConfig.usePetroPathingManualDrive) {
+            this.follower.startTeleopDrive(true);
+        } else {
+            this.driveCtrl.setupWheels();
+        }
+        this.manualDriveEnabled = true;
+    }
+
+    public void disableManualDrive() {
+        if (!this.manualDriveEnabled) {
+            return;
+        }
+        if (!RobotConfig.usePetroPathingManualDrive) {
+            this.driveCtrl.restoreWheels();
+        }
+        this.manualDriveEnabled = false;
+    }
+
     public void init(LinearOpMode opMode, Pose startPos) {
         this.opMode = opMode;
-        this.initImu();
-        this.initWheels();
-        this.initMecanumIMUDrive();
+        if (!RobotConfig.usePetroPathingManualDrive) {
+            this.initImu();
+            this.initWheels();
+            this.initMecanumIMUDrive();
+        }
         this.initOdometry(startPos);
 
         if (RobotConfig.cameraEnabled) {
@@ -94,6 +109,7 @@ public class Robot {
     }
 
     public void start() {
+        this.enableManualDrive();
     }
 
     public void handleRobotMove() {
@@ -108,14 +124,14 @@ public class Robot {
             botDirection = -1;
         }
         double power = 0, x = 0, y = 0, turn = 0;
-        double smallTurn = 0.5, bigTurn = 2;
+        double smallTurn = 0.3, bigTurn = 0.6;
 
         if (this.opMode.gamepad1.left_stick_x != 0 || this.opMode.gamepad1.left_stick_y != 0) {
             power = 0.5;
             x = (botDirection)*this.opMode.gamepad1.left_stick_x;
             y = -(botDirection)*this.opMode.gamepad1.left_stick_y;
         } else if (this.opMode.gamepad1.right_stick_x != 0 || this.opMode.gamepad1.right_stick_y != 0) {
-            power = 3;
+            power = 1;
             x = (botDirection)*this.opMode.gamepad1.right_stick_x;
             y = -(botDirection)*this.opMode.gamepad1.right_stick_y;
         }
@@ -130,18 +146,29 @@ public class Robot {
             turn = -smallTurn;
         }
 
-        this.driveCtrl.moveByPower(power, x, y, turn);
+        if (RobotConfig.usePetroPathingManualDrive) {
+            this.follower.setTeleOpDrive(y * power, -x * power, turn, true);
+        } else {
+            this.driveCtrl.moveByPower(power, x, y, turn);
+        }
     }
 
     public BallSearchingAndIntakeAction createBallTrackingAction() {
         return new BallSearchingAndIntakeAction(this);
     }
 
+    public AirTagTrackingAction createAirTagTrackingAction() {
+        return new AirTagTrackingAction(this, 0,
+                RobotConfig.goalAirTagX,
+                RobotConfig.goalAirTagY,
+                RobotConfig.goalAirTagHeight);
+    }
+
     public void update() {
+        follower.update();
         handleRobotMove();
         if (RobotConfig.cameraEnabled) {
             vision.update();
         }
-        follower.update();
-    }
+   }
 }

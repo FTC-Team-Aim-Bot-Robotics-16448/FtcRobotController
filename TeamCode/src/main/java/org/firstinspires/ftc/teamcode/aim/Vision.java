@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.aim;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -11,6 +12,8 @@ import edu.wpi.first.math.MathUtil;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import java.util.List;
 
 public class Vision {
     private Limelight3A camera;
@@ -25,6 +28,8 @@ public class Vision {
     public static class ObjectDetectionResult {
         public double forwardOffset;
         public double strafeOffset;
+        public double distance;
+        public int airTagID;
         public double ta; // target area percentage
         public double tx; // horizontal offset
         public double ty; // vertical offset
@@ -144,7 +149,7 @@ public class Vision {
         double relativeX = distance * Math.sin(Math.toRadians(tx)); // positive = right of robot
         double relativeY = distance * Math.cos(Math.toRadians(tx)); // positive = in front of robot
 
-        return new double[]{relativeX, relativeY};
+        return new double[]{relativeX, relativeY, distance};
     }
 
     public double[] getTargetPosition() {
@@ -169,9 +174,18 @@ public class Vision {
         double pos[] = getTargetPosition();
         r.forwardOffset = pos[1];
         r.strafeOffset = pos[0];
+        r.distance = pos[2];
         r.ta = result.getTa();
         r.tx = result.getTx();
         r.ty = result.getTy();
+
+        List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+        if (fiducialResults != null && !fiducialResults.isEmpty()) {
+            // Get the first element
+            LLResultTypes.FiducialResult first = fiducialResults.get(0);
+            r.airTagID = first.getFiducialId();
+        }
+
         result = null;
         return r;
     }

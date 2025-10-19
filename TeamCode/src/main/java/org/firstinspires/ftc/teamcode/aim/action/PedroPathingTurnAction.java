@@ -9,7 +9,12 @@ import com.pedropathing.paths.PathChain;
 public class PedroPathingTurnAction extends Action {
     private Follower follower;
     private boolean holdEnd;
-    private double turnToRad;
+    private double turnToRad = 0;
+
+    @Override
+    public String toString() {
+        return super.toString() + " angle:" + Math.toDegrees(this.turnToRad);
+    }
 
     public PedroPathingTurnAction(String name, Follower f, double turnToRad, boolean holdEnd) {
         super(name);
@@ -18,15 +23,30 @@ public class PedroPathingTurnAction extends Action {
         this.turnToRad = turnToRad;
     }
 
+    public PedroPathingTurnAction(String name, Follower f,
+                                  double targetX, double targetY, boolean holdEnd) {
+        super(name);
+        follower = f;
+        this.holdEnd = holdEnd;
+
+        double deltaY = targetY - this.follower.getPose().getY();
+        double deltaX = targetX - this.follower.getPose().getX();
+        this.turnToRad = Math.atan2(deltaY, deltaX);
+    }
+
     private boolean isTurnFinished() {
-        if (follower.isBusy()) {
+         if (follower.isBusy()) {
             return false;
         }
-        if (follower.getHeadingError() < follower.getCurrentPath().getPathEndHeadingConstraint() ||
+        return true;
+
+        /* TODO: do custom completion checking if needed
+         if (follower.getHeadingError() < follower.getCurrentPath().getPathEndHeadingConstraint() ||
                 follower.getAngularVelocity() < 0.055) {
             return true;
         }
         return false;
+        */
     }
 
     private void startTurn() {
@@ -37,7 +57,7 @@ public class PedroPathingTurnAction extends Action {
         PathChain turnPath =follower.pathBuilder()
                 .addPath(new BezierPoint(targetPos))
                 .setLinearHeadingInterpolation(
-                        follower.getHeading(), targetPos.getHeading()).setTimeoutConstraint(500)
+                        follower.getHeading(), targetPos.getHeading()).setTimeoutConstraint(1000)
                 .build();
         follower.followPath(turnPath, this.holdEnd);
      }

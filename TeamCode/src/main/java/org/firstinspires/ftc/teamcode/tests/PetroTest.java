@@ -1,31 +1,41 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.RobotConfig;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 import org.firstinspires.ftc.teamcode.aim.action.PedroPathingTurnAction;
+import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp
 public class PetroTest extends LinearOpMode {
-    private Follower follower;
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
+    //private Follower follower;
+    //private final Pose startPose = new Pose(0, 0, Math.toRadians(90));
+    private final Pose startPose = new Pose(DistanceUnit.INCH.fromMm(804),
+            DistanceUnit.INCH.fromMm(363), Math.toRadians(90)); // Start Pose of our robot.
+    private Robot robot = new Robot();
+
     private Action turnAction = null;
 
     private void doInit() {
-        follower = Constants.createFollower(hardwareMap);
+        /*follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
-        follower.update();
-        this.turnAction = new PedroPathingTurnAction("testTurn", this.follower, Math.toRadians(90), true);
+        follower.update();*/
+        robot.init(this, this.startPose);
+        robot.disableManualDrive();
+
+        this.turnAction= new PedroPathingTurnAction("testTurn",
+                this.robot.follower,
+                DistanceUnit.INCH.fromMm( RobotConfig.goalAirTagX),
+                DistanceUnit.INCH.fromMm( RobotConfig.goalAirTagY),
+                true);
+        //this.turnAction = new ActionWithDelay("turnWithDelay", act1, 200);
     }
 
     /*private void startTurn() {
@@ -77,7 +87,8 @@ public class PetroTest extends LinearOpMode {
         int status = 0;
 
         while (opModeIsActive()) {
-            follower.update();
+            //follower.update();
+            this.robot.update();
             turnAction.update();
 
             switch (status) {
@@ -88,18 +99,22 @@ public class PetroTest extends LinearOpMode {
                     status = 1;
                     break;
                 case 1:
-                    //if (follower.isBusy() || !isFinished()) {
-                    //if (follower.isBusy()) {
-                    if (!turnAction.isFinished()) {
-                        telemetry.addData("Status", "Turning....");
-                    } else {
-                        telemetry.addData("Status", "Turn completed");
+                    if (turnAction.isFinished()) {
+                        this.robot.follower.breakFollowing();
+                        status = 2;
                     }
-                    telemetry.addData("Angular Velocity", "%f", follower.getAngularVelocity());
-                    telemetry.addData("Heading", "%f", Math.toDegrees(follower.getHeading()));
-                    telemetry.update();
                     break;
+                default:
             }
+            if (!turnAction.isFinished()) {
+                telemetry.addData("Status", "Turning....");
+            } else {
+                telemetry.addData("Status", "Turn completed");
+            }
+            telemetry.addData("Angular Velocity", "%f", this.robot.follower.getAngularVelocity());
+            telemetry.addData("Heading", "%f", Math.toDegrees(this.robot.follower.getHeading()));
+            telemetry.addData("turnAction", "%s", this.turnAction.toString());
+            telemetry.update();
 
         }
     }

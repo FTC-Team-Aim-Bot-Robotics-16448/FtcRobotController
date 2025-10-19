@@ -19,6 +19,7 @@ public class RobotConfig {
     public static double countPerMotorRev = 537.7;
     public static double driveGearReduction = 1.0;
     public static double wheelDiameterInches = 4.0;
+    public static boolean usePetroPathingManualDrive = true;
 
     // IMU config
     public static String imuName = "imu";
@@ -35,6 +36,11 @@ public class RobotConfig {
     public static double cameraToCentorStrafe = -80; // on left of center
     public static double cameraToCentorForward = 120; // on left of center
     public static double intakeToCenterForward = 240; //  forward of center
+
+    public static int limeLightGoalAirTaglPipeLine = 0;
+    public static double goalAirTagHeight =  477; // mm
+    public static double goalAirTagX = 1387; // mm
+    public static double goalAirTagY = 2112; // mm
 
     // Limelight 3A lens parameters
     public static double cameraHorizontalFOV = 54.5; // degrees
