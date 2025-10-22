@@ -21,7 +21,7 @@ public class AirTagTest extends LinearOpMode {
 
     private void startAirTagTracking() {
         robot.disableManualDrive();
-        this.airTagAction = robot.createAirTagTrackingAction();
+        this.airTagAction = robot.createAirTagReadAction();
         this.airTagAction.start();
     }
 

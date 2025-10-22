@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.aim.Vision;
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
@@ -157,11 +156,12 @@ public class Robot {
         return new BallSearchingAndIntakeAction(this);
     }
 
-    public AirTagTrackingAction createAirTagTrackingAction() {
-        return new AirTagTrackingAction(this, 0,
+    public AprilTagReadAction createAirTagReadAction() {
+        return new AprilTagReadAction(this, 0,
                 RobotConfig.goalAirTagX,
                 RobotConfig.goalAirTagY,
-                RobotConfig.goalAirTagHeight);
+                RobotConfig.goalAirTagHeight,
+                false);
     }
 
     public void update() {

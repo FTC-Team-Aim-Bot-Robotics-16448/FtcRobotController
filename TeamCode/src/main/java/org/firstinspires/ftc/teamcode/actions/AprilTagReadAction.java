@@ -1,19 +1,12 @@
 package org.firstinspires.ftc.teamcode.actions;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotConfig;
 import org.firstinspires.ftc.teamcode.aim.Vision;
 import org.firstinspires.ftc.teamcode.aim.action.*;
-import org.firstinspires.ftc.teamcode.aim.utils.MathUtils;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.RobotConfig;
 
-public class AirTagTrackingAction extends Action{
+public class AprilTagReadAction extends Action{
     private final Robot robot;
     private int status = 0;
     Vision.ObjectDetectionResult lastDetRet = null;
@@ -22,15 +15,17 @@ public class AirTagTrackingAction extends Action{
     private double airTagX, airTagY;
     private int pipeline = 0;
     private double airTagHeight;
+    private boolean needTurn = false;
 
-    public AirTagTrackingAction(Robot robot, int limelightPipeLine,
-                                double airTagX, double airTagY, double airTagHeight) {
+    public AprilTagReadAction(Robot robot, int limelightPipeLine,
+                              double airTagX, double airTagY, double airTagHeight, boolean needTurn) {
         super("AirTagTracking");
         this.robot = robot;
         this.airTagX = airTagX;
         this.airTagY = airTagY;
         this.pipeline = limelightPipeLine;
         this.airTagHeight = airTagHeight;
+        this.needTurn = needTurn;
     }
     public String toString() {
         String statusName;
@@ -78,12 +73,16 @@ public class AirTagTrackingAction extends Action{
     public boolean run() {
         switch (this.status) {
             case 0:
-                this.turnAction = new PedroPathingTurnAction("turnToAirTag",
-                        this.robot.follower,
-                        DistanceUnit.INCH.fromMm(this.airTagX),
-                        DistanceUnit.INCH.fromMm(this.airTagY), true);
-                this.turnAction.start();
-                this.status = 1;
+                if (!this.needTurn) {
+                    this.status = 2;
+                } else {
+                    this.turnAction = new PedroPathingTurnAction("turnToAirTag",
+                            this.robot.follower,
+                            DistanceUnit.INCH.fromMm(this.airTagX),
+                            DistanceUnit.INCH.fromMm(this.airTagY), true);
+                    this.turnAction.start();
+                    this.status = 1;
+                }
                 this.markStarted();
                 break;
             case 1: // wait for turn to complete, then go back to detection
