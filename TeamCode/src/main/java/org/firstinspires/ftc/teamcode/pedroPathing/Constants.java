@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -16,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(4.9)
+            .mass(10.20)
             .forwardZeroPowerAcceleration(-64)
             .lateralZeroPowerAcceleration(-63.8)
             .useSecondaryTranslationalPIDF(false)
@@ -30,20 +31,20 @@ public class Constants {
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .leftFrontMotorName("frontLeftMotor")
-            .leftRearMotorName("backLeftMotor")
-            .rightFrontMotorName("frontRightMotor")
-            .rightRearMotorName("backRightMotor")
-            .leftFrontMotorDirection(DcMotor.Direction.FORWARD)
-            .leftRearMotorDirection(DcMotor.Direction.FORWARD)
-            .rightFrontMotorDirection(DcMotor.Direction.REVERSE)
+            .leftFrontMotorName("lf")
+            .leftRearMotorName("lr")
+            .rightFrontMotorName("rf")
+            .rightRearMotorName("rr")
+            .leftFrontMotorDirection(DcMotor.Direction.REVERSE)
+            .leftRearMotorDirection(DcMotor.Direction.REVERSE)
+            .rightFrontMotorDirection(DcMotor.Direction.FORWARD)
             .rightRearMotorDirection(DcMotor.Direction.FORWARD)
             .xVelocity(57.73)
             .yVelocity(44.76);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(2.933)
-            .strafePodX(-8.465)
+            .forwardPodY(-1.9685)
+            .strafePodX(-5.9055)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
            // .yawScalar(1.0)

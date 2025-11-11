@@ -27,12 +27,27 @@ public abstract class Action {
         return started;
     }
 
+    protected void cleanup() {
+
+    }
+
     public void start() {
         this.finished = run();
+        this.markStarted();
     }
+
+    public void stop() {
+        if (this.isFinished()) {
+            return;
+        }
+        this.cleanup();
+        this.finished = true;
+    }
+
 
     public void update() {
         if (isFinished()) {
+            this.cleanup();
             return;
         }
         this.finished = run();

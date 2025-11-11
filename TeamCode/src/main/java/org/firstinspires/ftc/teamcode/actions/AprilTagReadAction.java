@@ -51,7 +51,8 @@ public class AprilTagReadAction extends Action{
         return result;
     }
 
-    private void cleanup() {
+    @Override
+    protected void cleanup() {
         this.robot.vision.stop();
     }
 
@@ -100,7 +101,6 @@ public class AprilTagReadAction extends Action{
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
                 this.lastDetRet = detectionRet;
                 if (detectionRet != null) {
-                    this.cleanup();
                     return true;
                 }
                 break;

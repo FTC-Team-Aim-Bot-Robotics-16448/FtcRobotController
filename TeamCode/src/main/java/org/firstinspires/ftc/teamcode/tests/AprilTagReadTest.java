@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.RobotConfig;
 
 @TeleOp
-public class AirTagTest extends LinearOpMode {
+public class AprilTagReadTest extends LinearOpMode {
     private Robot robot = new Robot();
     private Button testButton = new Button();
     private final Pose startPose = new Pose(DistanceUnit.INCH.fromMm(804),
