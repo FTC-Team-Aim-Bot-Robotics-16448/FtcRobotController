@@ -19,7 +19,7 @@ public class DecodeTeleOp extends LinearOpMode {
     private final Pose startPose = new Pose(DistanceUnit.INCH.fromMm(804),
             DistanceUnit.INCH.fromMm(363), Math.toRadians(90)); // Start Pose of our robot.
 
-    private Action airTagAction = null;
+    private Action airTagTrackingAction = null;
     private Action intakeAction = null;
     private Action shootAction  = null;
 

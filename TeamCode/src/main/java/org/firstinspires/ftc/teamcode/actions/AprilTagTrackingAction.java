@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.actions;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 import org.firstinspires.ftc.teamcode.RobotConfig;
 import org.firstinspires.ftc.teamcode.aim.Vision;
 import org.firstinspires.ftc.teamcode.aim.action.*;
@@ -17,6 +19,7 @@ public class AprilTagTrackingAction extends Action {
     private double lastTx = 0;
     private double lastPower = 0;
     private double turretPos = 0;
+    private boolean aimed = false;
 
     public AprilTagTrackingAction(Robot robot, int limelightPipeLine, double airTagHeight) {
         super("AprilTagTracking");
@@ -33,8 +36,8 @@ public class AprilTagTrackingAction extends Action {
         pidParams.outputLimit = 0.2;        // Max turn power (60%)
         pidParams.tolerance = 1;          // Within 1 degree is considered on target
         pidParams.deadband = 0.25;           // Don't move if error is less than 0.5 degrees
-        pidParams.circular = true;         // Not circular control (tx is linear)
-        pidParams.minNonZeroOutput = 0.05;  // Minimum power to overcome friction
+        pidParams.circular = false;         // Not circular control (tx is linear)
+        pidParams.minNonZeroOutput = 0;  // Minimum power to overcome friction
 
         this.pidController = new PIDControl(pidParams);
         this.pidController.reset(0.0); // Target is 0 (centered on AprilTag)
@@ -50,16 +53,23 @@ public class AprilTagTrackingAction extends Action {
         }
 
         String result = super.toString() +
-                String.format(" [state=%s, tx=%.2f, power = %.2f, shouldStop=%b]",
-                        statusName, this.lastTx, this.lastPower, this.shouldStop);
+                String.format(" [state=%s, tx=%.2f, power=%.2f, pos=%f, aimed=%b, shouldStop=%b]",
+                        statusName, this.lastTx, this.lastPower,
+                        this.turretPos, this.aimed, this.shouldStop);
 
         return result;
+    }
+
+    private void initTurretMotor() {
+        this.robot.turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.robot.turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     @Override
     public boolean run() {
         switch (this.status) {
             case 0: // Initialize vision system
+                this.initTurretMotor();
                 //robot.enableManualDrive();
                 this.robot.vision.startObjectDetection(
                         this.pipeline,
@@ -85,17 +95,20 @@ public class AprilTagTrackingAction extends Action {
                 // Use PID controller to calculate turn power
                 double turnPower = this.pidController.getOutput(this.lastTx);
                 this.lastPower = turnPower;
+                this.turretPos = this.robot.turretMotor.getCurrentPosition();
 
                 // Aimed at the AprilTag
                 if (this.pidController.inPosition()) {
                     this.robot.turretMotor.setPower(0);
-                    return true;
+                    this.aimed = true;
+                    return false;
                 }
 
                 // Limit the turret turning angle
-                if (this.turretPos < -250 || this.turretPos > 250) {
+                if ((this.turretPos < -200 && turnPower < 0) ||
+                        (this.turretPos > 200 && turnPower > 0)) {
                     this.robot.turretMotor.setPower(0);
-                    return true;
+                    return false;
                 }
 
                 this.robot.turretMotor.setPower(turnPower);
@@ -117,6 +130,20 @@ public class AprilTagTrackingAction extends Action {
         //this.robot.follower.setTeleOpDrive(0, 0, 0, true);
         // Stop vision processing
         this.robot.vision.stop();
+
         this.robot.turretMotor.setPower(0);
+        this.robot.turretMotor.setTargetPosition(0);
+        this.robot.turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        if (this.robot.turretMotor.getCurrentPosition() > 0) {
+            this.robot.turretMotor.setPower(-0.5);
+        } else {
+            this.robot.turretMotor.setPower(0.5);
+        }
+
+    }
+
+    public boolean aprilTagAimed() {
+        return this.aimed;
     }
 }

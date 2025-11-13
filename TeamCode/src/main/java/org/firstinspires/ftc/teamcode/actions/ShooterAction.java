@@ -11,15 +11,18 @@ import java.util.function.Supplier;
 public class ShooterAction extends Action {
     private final Robot robot;
     private SeqAction seqAct;
+    private AprilTagTrackingAction aprilTagTrackAct;
 
     public ShooterAction(Robot robot) {
         super("Shoot");
         this.robot = robot;
         this.seqAct = this.shootAllSteps();
+        this.aprilTagTrackAct = this.robot.createAprilTagTrackingAction();
     }
 
     @Override
     public boolean run() {
+        this.aprilTagTrackAct.run();
         if (seqAct != null) {
             return this.seqAct.run();
         }
@@ -28,6 +31,7 @@ public class ShooterAction extends Action {
 
     @Override
     protected void cleanup() {
+        this.aprilTagTrackAct.stop();
         this.seqAct = null;
         this.robot.intakeMotor.setPower(0);
         this.robot.launchMotor.setPower(0);
@@ -36,7 +40,7 @@ public class ShooterAction extends Action {
 
     private SeqAction shootAllSteps() {
         SeqAction seqAction = new SeqAction("shootAll");
-        seqAction.addAction(this.robot.createAprilTagTrackingAction());
+        seqAction.addAction(this.waitingForAiming());
         seqAction.addAction(this.shootStartAction());
         seqAction.addAction(this.setIntakePower(-1, 200));
         seqAction.addAction(this.setIntakePower(0, 300));
@@ -46,6 +50,13 @@ public class ShooterAction extends Action {
         seqAction.addAction(this.setIntakePower(-1, 3000));
         seqAction.addAction(this.shootEndAction());
         return seqAction;
+    }
+
+    private Action waitingForAiming() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.aprilTagTrackAct.aprilTagAimed();
+        };
+        return new CommonAction("aprilTagAiming", step1Func);
     }
 
     private Action shootStartAction() {
