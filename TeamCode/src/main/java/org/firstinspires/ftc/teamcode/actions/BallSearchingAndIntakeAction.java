@@ -134,7 +134,8 @@ public class BallSearchingAndIntakeAction extends Action{
         return true; // Passed all filters
     }
 
-    private void cleanup() {
+    @Override
+    protected void cleanup() {
         this.robot.vision.stop();
         this.robot.follower.breakFollowing();
     }
@@ -186,7 +187,6 @@ public class BallSearchingAndIntakeAction extends Action{
                     // No valid ball detected - check if we should turn or give up
                     if (totalRotationDegrees >= 360) {
                         // Already searched full 360 degrees - give up
-                        this.cleanup();
                         return true;
                     } else if (this.timerPassed(1000)) {
                         this.turnAction = new PedroPathingTurnAction("turnToSearch",
@@ -238,7 +238,6 @@ public class BallSearchingAndIntakeAction extends Action{
                 break;
             }
             case 4: { // intake the ball
-                this.cleanup();
                 return true;
             }
         }

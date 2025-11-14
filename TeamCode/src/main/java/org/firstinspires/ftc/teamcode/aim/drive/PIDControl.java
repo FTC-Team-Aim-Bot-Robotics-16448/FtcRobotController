@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.aim.drive;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-class PIDControl {
+public class PIDControl {
     double  gain;
     double  ki;
     double  kd;

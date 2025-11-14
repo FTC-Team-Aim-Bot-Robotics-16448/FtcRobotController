@@ -8,13 +8,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @Configurable
 public class RobotConfig {
     // Wheels config
-    public static String frontLeftWheelName = "frontLeftMotor";
-    public static DcMotor.Direction frontLeftWheelDirection = DcMotor.Direction.FORWARD;
-    public static String frontRightWheelName = "frontRightMotor";
-    public static DcMotor.Direction frontRightWheelDirection = DcMotor.Direction.REVERSE;
-    public static String backLeftWheelName = "backLeftMotor";
-    public static DcMotor.Direction backLeftWheelDirection = DcMotor.Direction.FORWARD;
-    public static String backRightWheelName = "backRightMotor";
+    public static String frontLeftWheelName = "lf";
+    public static DcMotor.Direction frontLeftWheelDirection = DcMotor.Direction.REVERSE;
+    public static String frontRightWheelName = "rf";
+    public static DcMotor.Direction frontRightWheelDirection = DcMotor.Direction.FORWARD;
+    public static String backLeftWheelName = "lr";
+    public static DcMotor.Direction backLeftWheelDirection = DcMotor.Direction.REVERSE;
+    public static String backRightWheelName = "rr";
     public static DcMotor.Direction backRightWheelDirection = DcMotor.Direction.FORWARD;
     public static double countPerMotorRev = 537.7;
     public static double driveGearReduction = 1.0;
@@ -23,8 +23,8 @@ public class RobotConfig {
 
     // IMU config
     public static String imuName = "imu";
-    public static RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.FORWARD;
-    public static RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.LEFT;
+    public static RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
+    public static RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
     // camera
     public static boolean cameraEnabled = true;

@@ -4,11 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.aim.Vision;
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
@@ -23,9 +24,13 @@ public class Robot {
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
     private boolean manualDriveEnabled = false;
-
     public Vision vision = new Vision();
     public Follower follower;
+
+    // hardwares for intake and shooter systems
+    public DcMotor launchMotor, intakeMotor, turretMotor, optakeMotor;
+    public Servo leftLaunchAngle, rightLaunchAngle;
+    public DistanceSensor intakeDistSensor;
 
     private void initImu() {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
@@ -94,6 +99,20 @@ public class Robot {
         this.manualDriveEnabled = false;
     }
 
+    public void initShooterSystem() {
+        launchMotor = this.opMode.hardwareMap.get(DcMotor.class, "launchMotor");
+        intakeMotor = this.opMode.hardwareMap.get(DcMotor.class, "intakeMotor");
+        turretMotor = this.opMode.hardwareMap.get(DcMotor.class, "turretMotor");
+        optakeMotor = this.opMode.hardwareMap.get(DcMotor.class, "optakeMotor");
+        leftLaunchAngle = this.opMode.hardwareMap.get(Servo.class, "leftLaunchAngle");
+        rightLaunchAngle = this.opMode.hardwareMap.get(Servo.class, "rightLaunchAngle");
+        intakeDistSensor = this.opMode.hardwareMap.get(DistanceSensor.class, "dist");
+
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
     public void init(LinearOpMode opMode, Pose startPos) {
         this.opMode = opMode;
         if (!RobotConfig.usePetroPathingManualDrive) {
@@ -106,6 +125,8 @@ public class Robot {
         if (RobotConfig.cameraEnabled) {
             this.initVision();
         }
+
+        initShooterSystem();
     }
 
     public void start() {
@@ -157,11 +178,24 @@ public class Robot {
         return new BallSearchingAndIntakeAction(this);
     }
 
-    public AirTagTrackingAction createAirTagTrackingAction() {
-        return new AirTagTrackingAction(this, 0,
+    public AprilTagReadAction createAirTagReadAction() {
+        return new AprilTagReadAction(this, 0,
                 RobotConfig.goalAirTagX,
                 RobotConfig.goalAirTagY,
-                RobotConfig.goalAirTagHeight);
+                RobotConfig.goalAirTagHeight,
+                false);
+    }
+
+    public AprilTagTrackingAction createAprilTagTrackingAction(int llPipeline) {
+        return new AprilTagTrackingAction(this, llPipeline, RobotConfig.goalAirTagHeight);
+    }
+
+    public IntakeAction createIntakeAction() {
+        return new IntakeAction(this);
+    }
+
+    public ShooterAction createShooterAction(int llPipelineForAiming) {
+        return new ShooterAction(this,  llPipelineForAiming);
     }
 
     public void update() {
