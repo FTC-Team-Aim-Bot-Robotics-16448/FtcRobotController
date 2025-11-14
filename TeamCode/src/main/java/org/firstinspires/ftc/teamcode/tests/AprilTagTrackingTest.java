@@ -19,12 +19,12 @@ public class AprilTagTrackingTest extends LinearOpMode {
 
     private AprilTagTrackingAction trackingAction = null;
 
-    private void startAprilTagTracking() {
+    private void startAprilTagTracking(int llPipeline) {
         if (this.trackingAction != null && !this.trackingAction.isFinished()) {
             // Already tracking, don't start again
             return;
         }
-        this.trackingAction = robot.createAprilTagTrackingAction();
+        this.trackingAction = robot.createAprilTagTrackingAction(llPipeline);
         this.trackingAction.start();
         telemetry.addData("Status", "AprilTag tracking started");
     }
@@ -70,7 +70,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
             // Start tracking when B button is pressed
             this.startButton.update(this.gamepad1.b);
             if (this.startButton.isPressed()) {
-                startAprilTagTracking();
+                startAprilTagTracking(0);
             }
 
             // Stop tracking when X button is pressed

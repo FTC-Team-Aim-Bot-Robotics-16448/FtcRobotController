@@ -186,16 +186,16 @@ public class Robot {
                 false);
     }
 
-    public AprilTagTrackingAction createAprilTagTrackingAction() {
-        return new AprilTagTrackingAction(this, 0, RobotConfig.goalAirTagHeight);
+    public AprilTagTrackingAction createAprilTagTrackingAction(int llPipeline) {
+        return new AprilTagTrackingAction(this, llPipeline, RobotConfig.goalAirTagHeight);
     }
 
     public IntakeAction createIntakeAction() {
         return new IntakeAction(this);
     }
 
-    public ShooterAction createShooterAction() {
-        return new ShooterAction(this);
+    public ShooterAction createShooterAction(int llPipelineForAiming) {
+        return new ShooterAction(this,  llPipelineForAiming);
     }
 
     public void update() {

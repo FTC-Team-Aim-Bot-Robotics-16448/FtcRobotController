@@ -12,12 +12,14 @@ public class ShooterAction extends Action {
     private final Robot robot;
     private SeqAction seqAct;
     private AprilTagTrackingAction aprilTagTrackAct;
+    private int llPipeLineForAiming;
 
-    public ShooterAction(Robot robot) {
+    public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
         this.robot = robot;
         this.seqAct = this.shootAllSteps();
-        this.aprilTagTrackAct = this.robot.createAprilTagTrackingAction();
+        this.llPipeLineForAiming = llPipeLineForAiming;
+        this.aprilTagTrackAct = this.robot.createAprilTagTrackingAction(this.llPipeLineForAiming);
     }
 
     @Override

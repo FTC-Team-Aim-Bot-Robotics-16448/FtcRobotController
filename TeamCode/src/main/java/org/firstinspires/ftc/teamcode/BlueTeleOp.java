@@ -8,10 +8,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.RobotConfig;
 
 @TeleOp
-public class DecodeTeleOp extends LinearOpMode {
+public class BlueTeleOp extends LinearOpMode {
     private Robot robot = new Robot();
     private Button intakeButton = new Button();
     private Button shootButton = new Button();
@@ -22,6 +21,8 @@ public class DecodeTeleOp extends LinearOpMode {
     private Action airTagTrackingAction = null;
     private Action intakeAction = null;
     private Action shootAction  = null;
+
+    private final int LL_AIMING_PIPELINE = 0;
 
     @Override
     public void runOpMode() {
@@ -56,7 +57,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 this.intakeAction = null;
             }
             if (this.shootButton.isToggleOn()) {
-                this.shootAction = this.robot.createShooterAction();
+                this.shootAction = this.robot.createShooterAction(LL_AIMING_PIPELINE);
                 this.shootAction.start();
             }
             if (this.shootButton.isToggleOff()) {
