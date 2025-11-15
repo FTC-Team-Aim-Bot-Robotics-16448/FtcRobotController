@@ -41,12 +41,16 @@ public class ShooterAction extends Action {
         SeqAction seqAction = new SeqAction("shootAll");
         seqAction.addAction(this.shootStartAction());
         seqAction.addAction(this.waitingForAiming());
+        seqAction.addAction(this.setIntakePower(-1, 50));
+        /*seqAction.addAction(this.setLaunchPower(-0.55, 0));
+        seqAction.addAction(this.setIntakePower(0, 200));
         seqAction.addAction(this.setIntakePower(-1, 80));
-        seqAction.addAction(this.setLaunchPower(-0.6, 0));
-        seqAction.addAction(this.setIntakePower(0, 200));
-        seqAction.addAction(this.setIntakePower(-1, 125));
-        seqAction.addAction(this.setLaunchPower(-0.55, 0));
-        seqAction.addAction(this.setIntakePower(0, 200));
+        seqAction.addAction(this.setLaunchPower(-0.55, 0));*/
+        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        seqAction.addAction(this.setIntakePower(0, 60));
+        seqAction.addAction(this.setIntakePower(-1, 50));
+        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        seqAction.addAction(this.setIntakePower(0, 80));
         seqAction.addAction(this.setIntakePower(-1, 3000));
         seqAction.addAction(this.shootEndAction());
         return seqAction;
