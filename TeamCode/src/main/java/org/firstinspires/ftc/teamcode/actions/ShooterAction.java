@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public class ShooterAction extends Action {
     private final Robot robot;
     private SeqAction seqAct;
-    private AprilTagTrackingAction aprilTagTrackAct;
+    public AprilTagTrackingAction aprilTagTrackAct;
     private int llPipeLineForAiming;
 
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
@@ -25,10 +25,7 @@ public class ShooterAction extends Action {
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
-        if (seqAct != null) {
-            return this.seqAct.run();
-        }
-        return true;
+        return this.seqAct.run();
     }
 
     @Override
@@ -42,13 +39,18 @@ public class ShooterAction extends Action {
 
     private SeqAction shootAllSteps() {
         SeqAction seqAction = new SeqAction("shootAll");
-        seqAction.addAction(this.waitingForAiming());
         seqAction.addAction(this.shootStartAction());
-        seqAction.addAction(this.setIntakePower(-1, 200));
-        seqAction.addAction(this.setIntakePower(0, 300));
-        seqAction.addAction(this.setIntakePower(-1, 200));
-        seqAction.addAction(this.setIntakePower(0, 300));
-        seqAction.addAction(this.setIntakePower(0, 300));
+        seqAction.addAction(this.waitingForAiming());
+        seqAction.addAction(this.setIntakePower(-1, 50));
+        /*seqAction.addAction(this.setLaunchPower(-0.55, 0));
+        seqAction.addAction(this.setIntakePower(0, 200));
+        seqAction.addAction(this.setIntakePower(-1, 80));
+        seqAction.addAction(this.setLaunchPower(-0.55, 0));*/
+        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        seqAction.addAction(this.setIntakePower(0, 60));
+        seqAction.addAction(this.setIntakePower(-1, 50));
+        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        seqAction.addAction(this.setIntakePower(0, 80));
         seqAction.addAction(this.setIntakePower(-1, 3000));
         seqAction.addAction(this.shootEndAction());
         return seqAction;
@@ -61,11 +63,17 @@ public class ShooterAction extends Action {
         return new CommonAction("aprilTagAiming", step1Func);
     }
 
+    private double getLaunchPower() {
+        double ty = this.aprilTagTrackAct.getTy();
+        return -0.5;
+    }
+
     private Action shootStartAction() {
         Supplier<Boolean> step1Func = () -> {
             this.robot.leftLaunchAngle.setPosition(0);
             this.robot.rightLaunchAngle.setPosition(1);
-            this.robot.launchMotor.setPower(-0.75);
+           // this.robot.launchMotor.setPower(-0.75);
+            this.robot.launchMotor.setPower(-0.45);
             this.robot.optakeMotor.setPower(1);
             return true;
         };
@@ -92,4 +100,12 @@ public class ShooterAction extends Action {
         return new ActionWithDelay("withDelay", step1Act,  wait);
     }
 
+    private Action setLaunchPower(double power, long wait) {
+        Supplier<Boolean> step1Func = () -> {
+            this.robot.launchMotor.setPower(power);
+            return true;
+        };
+        Action step1Act = new CommonAction("setShootPower", step1Func);
+        return new ActionWithDelay("withDelay", step1Act,  wait);
+    }
 }

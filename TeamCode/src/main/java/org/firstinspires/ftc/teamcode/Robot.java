@@ -111,6 +111,9 @@ public class Robot {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void init(LinearOpMode opMode, Pose startPos) {
@@ -169,6 +172,7 @@ public class Robot {
 
         if (RobotConfig.usePetroPathingManualDrive) {
             this.follower.setTeleOpDrive(y * power, -x * power, turn, true);
+           // this.follower.setTeleOpDrive( power, -power, turn, true);
         } else {
             this.driveCtrl.moveByPower(power, x, y, turn);
         }
@@ -190,12 +194,37 @@ public class Robot {
         return new AprilTagTrackingAction(this, llPipeline, RobotConfig.goalAirTagHeight);
     }
 
-    public IntakeAction createIntakeAction() {
-        return new IntakeAction(this);
+    public IntakeAction createIntakeAction(boolean reverse) {
+        return new IntakeAction(this, reverse);
     }
 
     public ShooterAction createShooterAction(int llPipelineForAiming) {
         return new ShooterAction(this,  llPipelineForAiming);
+    }
+
+    public void turnTurret(double turnPower) {
+        if (this.turretMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+            this.turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.turretMotor.setPower(0);
+        }
+        int pos = this.turretMotor.getCurrentPosition();
+        if ((pos < -200 && turnPower < 0) ||
+                (pos > 200 && turnPower > 0)) {
+            this.turretMotor.setPower(0);
+            return;
+        }
+        this.turretMotor.setPower(turnPower);
+    }
+
+    public void turretSafeCheckAndStop() {
+        int pos = this.turretMotor.getCurrentPosition();
+        if (pos < -200 || pos > 200) {
+            this.turretMotor.setPower(0);
+        }
+    }
+
+    public void turretPosReset() {
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     public void update() {

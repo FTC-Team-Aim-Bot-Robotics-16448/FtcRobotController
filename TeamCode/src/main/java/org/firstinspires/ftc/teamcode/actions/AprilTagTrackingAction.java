@@ -17,6 +17,7 @@ public class AprilTagTrackingAction extends Action {
     private PIDControl pidController;
     private boolean shouldStop = false;
     private double lastTx = 0;
+    private double lastTy = 0;
     private double lastPower = 0;
     private double turretPos = 0;
     private boolean aimed = false;
@@ -60,16 +61,14 @@ public class AprilTagTrackingAction extends Action {
         return result;
     }
 
-    private void initTurretMotor() {
-        this.robot.turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        this.robot.turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    public double getTy() {
+        return this.lastTy;
     }
 
     @Override
     public boolean run() {
         switch (this.status) {
             case 0: // Initialize vision system
-                this.initTurretMotor();
                 //robot.enableManualDrive();
                 this.robot.vision.startObjectDetection(
                         this.pipeline,
@@ -87,10 +86,12 @@ public class AprilTagTrackingAction extends Action {
                 // tx < 0 means target is to the left
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
                 if (detectionRet == null) {
+                    this.robot.turnTurret(0);
                     return false;
                 }
                 double tx =  detectionRet.tx;
                 this.lastTx = tx;
+                this.lastTy = detectionRet.ty;
 
                 // Use PID controller to calculate turn power
                 double turnPower = this.pidController.getOutput(this.lastTx);
@@ -104,6 +105,8 @@ public class AprilTagTrackingAction extends Action {
                     return false;
                 }
 
+                this.robot.turnTurret(turnPower);
+/*
                 // Limit the turret turning angle
                 if ((this.turretPos < -200 && turnPower < 0) ||
                         (this.turretPos > 200 && turnPower > 0)) {
@@ -112,6 +115,8 @@ public class AprilTagTrackingAction extends Action {
                 }
 
                 this.robot.turretMotor.setPower(turnPower);
+
+ */
                 // We can also turn the robot to aim the AprilTag,
                 //this.robot.follower.setTeleOpDrive(0, 0, turnPower, true);
 
@@ -130,8 +135,9 @@ public class AprilTagTrackingAction extends Action {
         //this.robot.follower.setTeleOpDrive(0, 0, 0, true);
         // Stop vision processing
         this.robot.vision.stop();
-
         this.robot.turretMotor.setPower(0);
+
+        /*this.robot.turretMotor.setPower(0);
         this.robot.turretMotor.setTargetPosition(0);
         this.robot.turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
@@ -139,7 +145,7 @@ public class AprilTagTrackingAction extends Action {
             this.robot.turretMotor.setPower(-0.5);
         } else {
             this.robot.turretMotor.setPower(0.5);
-        }
+        }*/
 
     }
 
