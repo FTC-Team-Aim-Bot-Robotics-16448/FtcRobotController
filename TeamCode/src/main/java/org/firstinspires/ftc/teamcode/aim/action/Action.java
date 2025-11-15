@@ -47,10 +47,13 @@ public abstract class Action {
 
     public void update() {
         if (isFinished()) {
-            this.cleanup();
             return;
         }
         this.finished = run();
+        if (isFinished()) {
+            this.cleanup();
+            return;
+        }
     }
 
     public boolean isFinished() {

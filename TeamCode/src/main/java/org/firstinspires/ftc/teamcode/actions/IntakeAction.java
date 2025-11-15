@@ -11,10 +11,12 @@ public class IntakeAction extends Action {
     private double ballDistance = 100;
     private double triggeedDistance = -1;
     private boolean distSensorReady = false;
+    private boolean reverse = false;
 
-    public IntakeAction(Robot robot) {
+    public IntakeAction(Robot robot, boolean reverse) {
         super("Intake");
         this.robot = robot;
+        this.reverse = reverse;
     }
 
     public String toString() {
@@ -25,8 +27,17 @@ public class IntakeAction extends Action {
         return result;
     }
 
+    private boolean reverseRun() {
+        this.robot.intakeMotor.setPower(1.0);
+        this.robot.optakeMotor.setPower(-1);
+        return false;
+    }
+
     @Override
     public boolean run() {
+        if (this.reverse) {
+            return reverseRun();
+        }
         if (!this.distSensorReady) {
             double dist = this.robot.intakeDistSensor.getDistance(DistanceUnit.CM);
             if (dist > 10 && dist < 50) {
