@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.actions;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
@@ -13,6 +14,7 @@ public class ShooterAction extends Action {
     private SeqAction seqAct;
     public AprilTagTrackingAction aprilTagTrackAct;
     private int llPipeLineForAiming;
+    private boolean prevBallInHood = false;
 
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
@@ -41,17 +43,35 @@ public class ShooterAction extends Action {
         SeqAction seqAction = new SeqAction("shootAll");
         seqAction.addAction(this.shootStartAction());
         seqAction.addAction(this.waitingForAiming());
-        seqAction.addAction(this.setIntakePower(-1, 50));
+
+        seqAction.addAction(this.setIntakePower(-1, 0));
+        seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(this.setIntakePower(0, 0));
+
+        seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        seqAction.addAction(this.setIntakePower(-1, 0));
+        seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        seqAction.addAction(this.setIntakePower(0, 0));
+
+        seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        seqAction.addAction(this.setIntakePower(-1, 0));
+        seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        seqAction.addAction(this.setIntakePower(0, 0));
+
         /*seqAction.addAction(this.setLaunchPower(-0.55, 0));
         seqAction.addAction(this.setIntakePower(0, 200));
         seqAction.addAction(this.setIntakePower(-1, 80));
         seqAction.addAction(this.setLaunchPower(-0.55, 0));*/
-        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        /*seqAction.addAction(this.setLaunchPower(-0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 60));
         seqAction.addAction(this.setIntakePower(-1, 50));
         seqAction.addAction(this.setLaunchPower(-0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 80));
-        seqAction.addAction(this.setIntakePower(-1, 3000));
+        seqAction.addAction(this.setIntakePower(-1, 3000));*/
         seqAction.addAction(this.shootEndAction());
         return seqAction;
     }
@@ -61,6 +81,47 @@ public class ShooterAction extends Action {
             return this.aprilTagTrackAct.aprilTagAimed();
         };
         return new CommonAction("aprilTagAiming", step1Func);
+    }
+
+    private Action waitingForBallInHood(boolean inHood) {
+        Supplier<Boolean> step1Func = () -> {
+            double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
+            if (inHood) {
+                if (ballDistance < 2) {
+                    return true;
+                }
+            } else {
+                if (ballDistance > 5) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        return new CommonAction("waitingBallInHood", step1Func);
+    }
+
+    private Action waitingForLaunchMotorSpeed() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.robot.launchMotor.getVelocity() > 5000;
+        };
+        return new CommonAction("waitingLaunchMotor", step1Func);
+    }
+
+    private Action waitingForBallShoot() {
+        Supplier<Boolean> step1Func = () -> {
+            double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
+            boolean ballInHood = false;
+            if (ballDistance < 2) {
+                ballInHood = true;
+            }
+            if (this.prevBallInHood && !ballInHood) {
+                this.prevBallInHood = ballInHood;
+                return true;
+            }
+            this.prevBallInHood = ballInHood;
+            return false;
+        };
+        return new CommonAction("waitingBallShoot", step1Func);
     }
 
     private double getLaunchPower() {

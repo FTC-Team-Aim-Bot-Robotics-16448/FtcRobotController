@@ -126,6 +126,7 @@ public class BlueTeleOp extends LinearOpMode {
                 telemetry.addData("Ty:", "%f", this.shootAction.aprilTagTrackAct.getTy());
             }
             telemetry.addData("Turret pos:", "%d", this.robot.turretMotor.getCurrentPosition());
+            telemetry.addData("Launch Motor:", "%f", this.robot.launchMotor.getVelocity());
             telemetry.addData("X:Y", "%f:%f: %f",
                     robot.follower.getPose().getX(), robot.follower.getPose().getY(),
                     Math.toDegrees(robot.follower.getHeading()));
