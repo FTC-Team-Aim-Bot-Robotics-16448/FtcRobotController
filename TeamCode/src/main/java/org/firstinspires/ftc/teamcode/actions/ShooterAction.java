@@ -44,32 +44,39 @@ public class ShooterAction extends Action {
         seqAction.addAction(this.shootStartAction());
         seqAction.addAction(this.waitingForAiming());
 
-        seqAction.addAction(this.setIntakePower(-1, 0));
-        seqAction.addAction(this.waitingForBallInHood(true));
-        seqAction.addAction(this.setIntakePower(0, 0));
+        seqAction.addAction(this.setIntakePower(-0.6, 0));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression1());
+        //seqAction.addAction(this.waitingForBallInHood(true));
+        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.setIntakePower(0, 500));
 
-        seqAction.addAction(this.waitingForBallInHood(false));
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(-1, 0));
-        seqAction.addAction(this.waitingForBallInHood(true));
-        seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(0, 0));
+        seqAction.addAction(this.setIntakePower(-0.75, 0));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression());
+        //seqAction.addAction(this.waitingForBallInHood(true));
+        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.setIntakePower(0, 500));
 
-        seqAction.addAction(this.waitingForBallInHood(false));
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
         seqAction.addAction(this.setIntakePower(-1, 0));
-        seqAction.addAction(this.waitingForBallInHood(true));
-        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        //seqAction.addAction(this.waitingForBallInHood(true));
+        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 0));
+        this.robot.opMode.telemetry.addData("hi","");
+       /* seqAction.addAction(this.setIntakePower(-1, 0));
+        seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());*/
 
         /*seqAction.addAction(this.setLaunchPower(-0.55, 0));
         seqAction.addAction(this.setIntakePower(0, 200));
         seqAction.addAction(this.setIntakePower(-1, 80));
         seqAction.addAction(this.setLaunchPower(-0.55, 0));*/
-        /*seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        /*seqAction.addAction(this.setIntakePower(-1, 50));
+        seqAction.addAction(this.setLaunchPower(0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 60));
         seqAction.addAction(this.setIntakePower(-1, 50));
-        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        seqAction.addAction(this.setLaunchPower(0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 80));
         seqAction.addAction(this.setIntakePower(-1, 3000));*/
         seqAction.addAction(this.shootEndAction());
@@ -87,7 +94,7 @@ public class ShooterAction extends Action {
         Supplier<Boolean> step1Func = () -> {
             double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
             if (inHood) {
-                if (ballDistance < 2) {
+                if (ballDistance < 3) {
                     return true;
                 }
             } else {
@@ -102,11 +109,24 @@ public class ShooterAction extends Action {
 
     private Action waitingForLaunchMotorSpeed() {
         Supplier<Boolean> step1Func = () -> {
-            return this.robot.launchMotor.getVelocity() > 5000;
+            return this.robot.launchMotor.getVelocity() > 1150;
         };
         return new CommonAction("waitingLaunchMotor", step1Func);
     }
 
+    private Action waitingForLaunchMotorDecompression() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.robot.launchMotor.getVelocity() < 1100;
+        };
+        return new CommonAction("waitingLaunchMotor", step1Func);
+    }
+
+    private Action waitingForLaunchMotorDecompression1() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.robot.launchMotor.getVelocity() < 1200;
+        };
+        return new CommonAction("waitingLaunchMotor", step1Func);
+    }
     private Action waitingForBallShoot() {
         Supplier<Boolean> step1Func = () -> {
             double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
@@ -131,10 +151,8 @@ public class ShooterAction extends Action {
 
     private Action shootStartAction() {
         Supplier<Boolean> step1Func = () -> {
-            this.robot.leftLaunchAngle.setPosition(0);
-            this.robot.rightLaunchAngle.setPosition(1);
-           // this.robot.launchMotor.setPower(-0.75);
-            this.robot.launchMotor.setPower(-0.45);
+            this.robot.leftLaunchAngle.setPosition(0.8);
+            this.robot.launchMotor.setPower(0.5);
             this.robot.optakeMotor.setPower(1);
             return true;
         };

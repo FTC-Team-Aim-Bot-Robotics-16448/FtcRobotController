@@ -21,7 +21,7 @@ public class Robot {
     private IMU imu = null;
     private DcMotor frontRightMotor, backRightMotor, frontLeftMotor, backLeftMotor;
     private MecanumIMUDrive driveCtrl;
-    private LinearOpMode opMode;
+    public LinearOpMode opMode;
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
     private boolean manualDriveEnabled = false;
@@ -118,6 +118,8 @@ public class Robot {
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftLaunchAngle.setPosition(1);
     }
 
     public void init(LinearOpMode opMode, Pose startPos) {
@@ -138,6 +140,7 @@ public class Robot {
 
     public void start() {
         this.enableManualDrive();
+        leftLaunchAngle.setPosition(0.6);
     }
 
     public void handleRobotMove() {
