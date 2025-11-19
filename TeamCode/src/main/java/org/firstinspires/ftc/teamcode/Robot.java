@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -20,7 +21,7 @@ public class Robot {
     private IMU imu = null;
     private DcMotor frontRightMotor, backRightMotor, frontLeftMotor, backLeftMotor;
     private MecanumIMUDrive driveCtrl;
-    private LinearOpMode opMode;
+    public LinearOpMode opMode;
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
     private boolean manualDriveEnabled = false;
@@ -28,9 +29,11 @@ public class Robot {
     public Follower follower;
 
     // hardwares for intake and shooter systems
-    public DcMotor launchMotor, intakeMotor, turretMotor, optakeMotor;
+    public DcMotor intakeMotor, turretMotor, optakeMotor;
+    public DcMotorEx launchMotor;
     public Servo leftLaunchAngle, rightLaunchAngle;
     public DistanceSensor intakeDistSensor;
+    public DistanceSensor shootDistSensor;
 
     private void initImu() {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
@@ -100,13 +103,14 @@ public class Robot {
     }
 
     public void initShooterSystem() {
-        launchMotor = this.opMode.hardwareMap.get(DcMotor.class, "launchMotor");
+        launchMotor = this.opMode.hardwareMap.get(DcMotorEx.class, "launchMotor");
         intakeMotor = this.opMode.hardwareMap.get(DcMotor.class, "intakeMotor");
         turretMotor = this.opMode.hardwareMap.get(DcMotor.class, "turretMotor");
         optakeMotor = this.opMode.hardwareMap.get(DcMotor.class, "optakeMotor");
         leftLaunchAngle = this.opMode.hardwareMap.get(Servo.class, "leftLaunchAngle");
         rightLaunchAngle = this.opMode.hardwareMap.get(Servo.class, "rightLaunchAngle");
         intakeDistSensor = this.opMode.hardwareMap.get(DistanceSensor.class, "dist");
+        shootDistSensor = this.opMode.hardwareMap.get(DistanceSensor.class, "shootDist");
 
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -114,6 +118,8 @@ public class Robot {
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftLaunchAngle.setPosition(1);
     }
 
     public void init(LinearOpMode opMode, Pose startPos) {
@@ -134,6 +140,7 @@ public class Robot {
 
     public void start() {
         this.enableManualDrive();
+        leftLaunchAngle.setPosition(0.6);
     }
 
     public void handleRobotMove() {

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.actions;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
@@ -13,6 +14,7 @@ public class ShooterAction extends Action {
     private SeqAction seqAct;
     public AprilTagTrackingAction aprilTagTrackAct;
     private int llPipeLineForAiming;
+    private boolean prevBallInHood = false;
 
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
@@ -41,17 +43,42 @@ public class ShooterAction extends Action {
         SeqAction seqAction = new SeqAction("shootAll");
         seqAction.addAction(this.shootStartAction());
         seqAction.addAction(this.waitingForAiming());
-        seqAction.addAction(this.setIntakePower(-1, 50));
+
+        seqAction.addAction(this.setIntakePower(-0.6, 0));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression1());
+        //seqAction.addAction(this.waitingForBallInHood(true));
+        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.setIntakePower(0, 500));
+
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        seqAction.addAction(this.setIntakePower(-0.75, 0));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression());
+        //seqAction.addAction(this.waitingForBallInHood(true));
+        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.setIntakePower(0, 500));
+
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
+        seqAction.addAction(this.setIntakePower(-1, 0));
+        //seqAction.addAction(this.waitingForBallInHood(true));
+        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression());
+        seqAction.addAction(this.setIntakePower(0, 0));
+        this.robot.opMode.telemetry.addData("hi","");
+       /* seqAction.addAction(this.setIntakePower(-1, 0));
+        seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());*/
+
         /*seqAction.addAction(this.setLaunchPower(-0.55, 0));
         seqAction.addAction(this.setIntakePower(0, 200));
         seqAction.addAction(this.setIntakePower(-1, 80));
         seqAction.addAction(this.setLaunchPower(-0.55, 0));*/
-        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        /*seqAction.addAction(this.setIntakePower(-1, 50));
+        seqAction.addAction(this.setLaunchPower(0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 60));
         seqAction.addAction(this.setIntakePower(-1, 50));
-        seqAction.addAction(this.setLaunchPower(-0.9, 0));
+        seqAction.addAction(this.setLaunchPower(0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 80));
-        seqAction.addAction(this.setIntakePower(-1, 3000));
+        seqAction.addAction(this.setIntakePower(-1, 3000));*/
         seqAction.addAction(this.shootEndAction());
         return seqAction;
     }
@@ -63,6 +90,60 @@ public class ShooterAction extends Action {
         return new CommonAction("aprilTagAiming", step1Func);
     }
 
+    private Action waitingForBallInHood(boolean inHood) {
+        Supplier<Boolean> step1Func = () -> {
+            double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
+            if (inHood) {
+                if (ballDistance < 3) {
+                    return true;
+                }
+            } else {
+                if (ballDistance > 5) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        return new CommonAction("waitingBallInHood", step1Func);
+    }
+
+    private Action waitingForLaunchMotorSpeed() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.robot.launchMotor.getVelocity() > 1150;
+        };
+        return new CommonAction("waitingLaunchMotor", step1Func);
+    }
+
+    private Action waitingForLaunchMotorDecompression() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.robot.launchMotor.getVelocity() < 1100;
+        };
+        return new CommonAction("waitingLaunchMotor", step1Func);
+    }
+
+    private Action waitingForLaunchMotorDecompression1() {
+        Supplier<Boolean> step1Func = () -> {
+            return this.robot.launchMotor.getVelocity() < 1200;
+        };
+        return new CommonAction("waitingLaunchMotor", step1Func);
+    }
+    private Action waitingForBallShoot() {
+        Supplier<Boolean> step1Func = () -> {
+            double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
+            boolean ballInHood = false;
+            if (ballDistance < 2) {
+                ballInHood = true;
+            }
+            if (this.prevBallInHood && !ballInHood) {
+                this.prevBallInHood = ballInHood;
+                return true;
+            }
+            this.prevBallInHood = ballInHood;
+            return false;
+        };
+        return new CommonAction("waitingBallShoot", step1Func);
+    }
+
     private double getLaunchPower() {
         double ty = this.aprilTagTrackAct.getTy();
         return -0.5;
@@ -70,10 +151,8 @@ public class ShooterAction extends Action {
 
     private Action shootStartAction() {
         Supplier<Boolean> step1Func = () -> {
-            this.robot.leftLaunchAngle.setPosition(0);
-            this.robot.rightLaunchAngle.setPosition(1);
-           // this.robot.launchMotor.setPower(-0.75);
-            this.robot.launchMotor.setPower(-0.45);
+            this.robot.leftLaunchAngle.setPosition(0.8);
+            this.robot.launchMotor.setPower(0.5);
             this.robot.optakeMotor.setPower(1);
             return true;
         };
