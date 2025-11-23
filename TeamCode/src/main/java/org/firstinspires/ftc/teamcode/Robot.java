@@ -145,7 +145,6 @@ public class Robot {
     }
 
     public void start() {
-        this.enableManualDrive();
         leftLaunchAngle.setPosition(0.6);
     }
 
@@ -242,7 +241,9 @@ public class Robot {
 
     public void update() {
         follower.update();
-        handleRobotMove();
+        if (manualDriveEnabled) {
+            handleRobotMove();
+        }
         if (RobotConfig.cameraEnabled) {
             vision.update();
         }
