@@ -21,6 +21,11 @@ public class RobotConfig {
     public static double wheelDiameterInches = 4.0;
     public static boolean usePetroPathingManualDrive = true;
 
+    // Shooter
+    public static double shooterMotorVelocity = 1100;
+    public static double shooterMotorVelocityPer = 0.98;
+    public static double shooterMotorDecompressionPer = 0.9;
+
     // IMU config
     public static String imuName = "imu";
     public static RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
