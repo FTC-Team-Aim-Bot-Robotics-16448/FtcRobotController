@@ -10,9 +10,14 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.actions.ShooterAction;
+import org.firstinspires.ftc.teamcode.aim.action.Action;
+
 @Autonomous(name = "Example Auto", group = "Examples")
 public class RedAuto extends OpMode {
 
+    private Robot robot = new Robot();
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
@@ -20,9 +25,13 @@ public class RedAuto extends OpMode {
 
     private int pathState;
 
+    private ShooterAction shootAction  = null;
+
+    private Action airTagTrackingAction = null;
+
     private final Pose startPose = new Pose(126.1, 121, Math.toRadians(37)); // Start Pose of our robot.
 
-    private final Pose gatePose = new Pose(125, 69.41226215644821, Math.toRadians(90));
+    private final Pose gatePose = new Pose(130, 69.41226215644821, Math.toRadians(90));
     private final Pose scorePose = new Pose(88.3, 87.3, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose start1Pose = new Pose(88.3, 87.3, Math.toRadians(0));
     private final Pose pickup1Pose = new Pose(125.73361522198732, 83.41649048625793, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
@@ -31,15 +40,18 @@ public class RedAuto extends OpMode {
     private final Pose start3Pose = new Pose(105.03171247357295, 35.315010570824526, Math.toRadians(0));
     private final Pose pickup3Pose = new Pose(125.4291754756871, 35.315010570824526, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
-    private Path scorePreload;
+    private PathChain scorePreload;
     private PathChain grabPickup1, scorePickup1, openGate, grabPickup2, scorePickup2, grabPickup3, scorePickup3;
 
     private final double SCORING_DELAY_SECONDS = 5.0; // 5 seconds delay for scoring actions
+    private final double PATH_PAUSE_DELAY_SECONDS = 1.0; // 1 second delay after path completion
 
     public void buildPaths() {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
-        scorePreload = new Path(new BezierLine(startPose, scorePose));
-        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+        scorePreload = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
+                .build();
 
     /* Here is an example for Constant Interpolation
     scorePreload.setConstantInterpolation(startPose.getHeading()); */
@@ -47,9 +59,10 @@ public class RedAuto extends OpMode {
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabPickup1 = follower.pathBuilder()
                 .setBrakingStart(brakingStart)
-                .addPath(new BezierLine(scorePose, start1Pose))
+                .addPath(new BezierLine(startPose, start1Pose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), start1Pose.getHeading())
                 .addPath(new BezierLine(start1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
+                .setLinearHeadingInterpolation(start1Pose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
@@ -60,7 +73,7 @@ public class RedAuto extends OpMode {
 
         openGate = follower.pathBuilder()
                 .setBrakingStart(brakingStart)
-                .addPath(new BezierLine(scorePose, gatePose))
+                .addPath(new BezierLine(pickup1Pose, gatePose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), gatePose.getHeading())
                 .build();
 
@@ -68,8 +81,9 @@ public class RedAuto extends OpMode {
         grabPickup2 = follower.pathBuilder()
                 .setBrakingStart(brakingStart)
                 .addPath(new BezierLine(gatePose, start2Pose))
+                .setLinearHeadingInterpolation(gatePose.getHeading(), start2Pose.getHeading())
                 .addPath(new BezierLine(start2Pose, pickup2Pose))
-                .setLinearHeadingInterpolation(gatePose.getHeading(), pickup2Pose.getHeading())
+                .setLinearHeadingInterpolation(start2Pose.getHeading(), pickup2Pose.getHeading())
                 .build();
 
         /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
@@ -82,8 +96,9 @@ public class RedAuto extends OpMode {
         grabPickup3 = follower.pathBuilder()
                 .setBrakingStart(brakingStart)
                 .addPath(new BezierLine(scorePose, start3Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), start3Pose.getHeading())
                 .addPath(new BezierLine(start3Pose, pickup3Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
+                .setLinearHeadingInterpolation(start3Pose.getHeading(), pickup3Pose.getHeading())
                 .build();
 
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
@@ -96,27 +111,35 @@ public class RedAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(scorePreload);
+                follower.followPath(scorePreload, 0.5, true);
                 setPathState(1);
                 break;
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
                     /* Score Preload */
                     // Start a non-blocking delay here for scoring
                     setPathState(10); // Transition to a new state for the first delay
                 }
                 break;
             case 10: // First non-blocking delay (after scorePreload)
-                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                /*if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     setPathState(2); // After delay, proceed to grab pickup 1
+                }*/
+                if (this.shootAction.isFinished()) {
+                    setPathState(-1);
                 }
                 break;
             case 2:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()) {
+                    setPathState(20); // Transition to a new state for path pause after previous path
+                }
+                break;
+            case 20: // Path pause after previous path, before grabPickup1
+                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
                     /* Grab Sample */
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(grabPickup1, true);
                     setPathState(3);
                 }
@@ -132,12 +155,24 @@ public class RedAuto extends OpMode {
                 break;
             case 11: // Second non-blocking delay (after scorePickup1)
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
-                    setPathState(8); // After delay, proceed to grab pickup 2
+                    setPathState(8); // After delay, proceed to openGate
                 }
                 break;
-            case 8:
+            case 8: // Initiate openGate
                 follower.followPath(openGate);
-                setPathState(4);
+                setPathState(40); // Transition to a new state to wait for openGate to finish
+                break;
+            case 40: // Wait for openGate to complete
+                if (!follower.isBusy()) {
+                    setPathState(41); // Transition to a new state for path pause after openGate
+                }
+                break;
+            case 41: // Path pause after openGate
+                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
+                    // Now proceed to grabPickup2 logic which starts in case 4
+                    setPathState(4);
+                }
+                break;
             case 4:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
                 if (!follower.isBusy()) {
@@ -148,7 +183,7 @@ public class RedAuto extends OpMode {
                 }
                 break;
             case 5:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                /* This case checks the robot's position and will will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
                     /* Score Sample */
                     // Corrected: After grabPickup2, we score the second pickup
@@ -162,17 +197,31 @@ public class RedAuto extends OpMode {
                 }
                 break;
             case 6:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup3Pose's position */
                 if (!follower.isBusy()) {
+                    setPathState(30); // Transition to a new state for path pause after previous path
+                }
+                break;
+            case 30: // Path pause after previous path, before grabPickup3
+                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
                     /* Grab Sample */
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(grabPickup3, true);
                     setPathState(7);
                 }
                 break;
             case 7:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
+                    /* Score Sample */
+                    follower.followPath(scorePickup3, true);
+                    setPathState(13); // Transition to a new state for the fourth delay
+                }
+                break;
+            case 13: // Fourth non-blocking delay (after scorePickup3)
+                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                    setPathState(31); // After delay, proceed to path pause before stopping
+                }
+                break;
+            case 31: // Path pause before stopping
+                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
                     /* Set the state to a Case we won't use or define, so it just stops running an new paths */
                     setPathState(-1);
                 }
@@ -193,9 +242,9 @@ public class RedAuto extends OpMode {
      **/
     @Override
     public void loop() {
-
+        robot.update();
         // These loop the movements of the robot, these must be called continuously in order to work
-        follower.update();
+        //follower.update();
         autonomousPathUpdate();
 
         // Feedback to Driver Hub for debugging
@@ -211,18 +260,19 @@ public class RedAuto extends OpMode {
      **/
     @Override
     public void init() {
+        robot.init(this, this.startPose);
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
-
-        follower = Constants.createFollower(hardwareMap);
+        follower = robot.follower; //Constants.createFollower(hardwareMap);
         try {
             buildPaths();
         } catch (RuntimeException e) { // Changed to RuntimeException because InterruptedException is removed
             throw new RuntimeException(e);
         }
-        follower.setStartingPose(startPose);
+       // follower.setStartingPose(startPose);
 
     }
 
@@ -241,6 +291,7 @@ public class RedAuto extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
+        robot.start();
     }
 
     /**
