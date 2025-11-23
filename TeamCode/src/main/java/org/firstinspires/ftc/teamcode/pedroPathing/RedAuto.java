@@ -54,7 +54,7 @@ public class RedAuto extends OpMode {
                 .addPath(new BezierLine(startPose, scorePose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .build();
-        
+
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabStart1 = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, start1Pose))

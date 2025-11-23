@@ -21,6 +21,7 @@ public class ShooterAction extends Action {
 
     private double curLlTy = 0;
     private double curShooterVel = 0;
+    private double curLlDist = 0;
 
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
@@ -33,8 +34,8 @@ public class ShooterAction extends Action {
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
-        this.robot.opMode.telemetry.addData("Shooter Ty:Velocity:Decom","%f:%f:%f",
-                this.curLlTy, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
+        this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
+                this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
         return this.seqAct.run();
     }
 
@@ -171,15 +172,22 @@ public class ShooterAction extends Action {
 
     private double getLaunchVelocity() {
         this.curLlTy = this.aprilTagTrackAct.getTy();
+        this.curLlDist = Math.abs(this.aprilTagTrackAct.getDistance());
         this.curShooterVel = RobotConfig.shooterMotorVelocity;
 
         /*double yInt = 1263; //a value in LSRL equation
         double slope = -16.15; //b value in LSRL equation
         double bx = slope * this.curLlTy;
         this.curShooterVel = bx + yInt;*/
-        double yInt = 1332; //1301; //a value in LSRL equation
+
+        /*double yInt = 1332; //1301; //a value in LSRL equation
         double slope = -19.70; //b value in LSRL equation
         double bx = slope * this.curLlTy;
+        this.curShooterVel = bx + yInt;*/
+
+        double yInt = 821.1; //1301; //a value in LSRL equation
+        double slope = 0.2727; //b value in LSRL equation
+        double bx = slope * this.curLlDist;
         this.curShooterVel = bx + yInt;
 
         return this.curShooterVel;

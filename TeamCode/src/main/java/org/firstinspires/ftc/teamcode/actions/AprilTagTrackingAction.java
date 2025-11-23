@@ -19,6 +19,7 @@ public class AprilTagTrackingAction extends Action {
     private double lastTx = 0;
     private double lastTy = 0;
     private double lastPower = 0;
+    private double lastDist = 0;
     private double turretPos = 0;
     private boolean aimed = false;
 
@@ -64,6 +65,9 @@ public class AprilTagTrackingAction extends Action {
     public double getTy() {
         return this.lastTy;
     }
+    public double getDistance() {
+        return this.lastDist;
+    }
 
     @Override
     public boolean run() {
@@ -92,6 +96,7 @@ public class AprilTagTrackingAction extends Action {
                 double tx =  detectionRet.tx;
                 this.lastTx = tx;
                 this.lastTy = detectionRet.ty;
+                this.lastDist = detectionRet.distance;
 
                 // Use PID controller to calculate turn power
                 double turnPower = this.pidController.getOutput(this.lastTx);
