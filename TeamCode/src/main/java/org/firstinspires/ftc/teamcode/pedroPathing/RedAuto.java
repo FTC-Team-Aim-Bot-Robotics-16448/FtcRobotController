@@ -10,15 +10,24 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.actions.ShooterAction;
+import org.firstinspires.ftc.teamcode.aim.action.Action;
+
 @Autonomous(name = "Example Auto", group = "Examples")
 public class RedAuto extends OpMode {
 
+    private Robot robot = new Robot();
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
     private double brakingStart = 1.2;
 
     private int pathState;
+
+    private ShooterAction shootAction  = null;
+
+    private Action airTagTrackingAction = null;
 
     private final Pose startPose = new Pose(126.1, 121, Math.toRadians(37)); // Start Pose of our robot.
 
@@ -108,14 +117,19 @@ public class RedAuto extends OpMode {
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
                     /* Score Preload */
                     // Start a non-blocking delay here for scoring
                     setPathState(10); // Transition to a new state for the first delay
                 }
                 break;
             case 10: // First non-blocking delay (after scorePreload)
-                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                /*if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     setPathState(2); // After delay, proceed to grab pickup 1
+                }*/
+                if (this.shootAction.isFinished()) {
+                    setPathState(-1);
                 }
                 break;
             case 2:
@@ -228,9 +242,9 @@ public class RedAuto extends OpMode {
      **/
     @Override
     public void loop() {
-
+        robot.update();
         // These loop the movements of the robot, these must be called continuously in order to work
-        follower.update();
+        //follower.update();
         autonomousPathUpdate();
 
         // Feedback to Driver Hub for debugging
@@ -246,18 +260,19 @@ public class RedAuto extends OpMode {
      **/
     @Override
     public void init() {
+        robot.init(this, this.startPose);
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
-
-        follower = Constants.createFollower(hardwareMap);
+        follower = robot.follower; //Constants.createFollower(hardwareMap);
         try {
             buildPaths();
         } catch (RuntimeException e) { // Changed to RuntimeException because InterruptedException is removed
             throw new RuntimeException(e);
         }
-        follower.setStartingPose(startPose);
+       // follower.setStartingPose(startPose);
 
     }
 
@@ -276,6 +291,7 @@ public class RedAuto extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
+        robot.start();
     }
 
     /**
