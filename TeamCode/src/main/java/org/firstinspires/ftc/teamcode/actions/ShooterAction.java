@@ -5,7 +5,10 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
 import org.firstinspires.ftc.teamcode.aim.action.CommonAction;
+import org.firstinspires.ftc.teamcode.aim.action.EitherOneAction;
 import org.firstinspires.ftc.teamcode.aim.action.SeqAction;
+import  org.firstinspires.ftc.teamcode.RobotConfig;
+import org.firstinspires.ftc.teamcode.aim.action.SleepAction;
 
 import java.util.function.Supplier;
 
@@ -15,6 +18,9 @@ public class ShooterAction extends Action {
     public AprilTagTrackingAction aprilTagTrackAct;
     private int llPipeLineForAiming;
     private boolean prevBallInHood = false;
+
+    private double curLlTy = 0;
+    private double curShooterVel = 0;
 
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
@@ -27,6 +33,8 @@ public class ShooterAction extends Action {
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
+        this.robot.opMode.telemetry.addData("Shooter Ty:Velocity:Decom","%f:%f:%f",
+                this.curLlTy, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
         return this.seqAct.run();
     }
 
@@ -41,29 +49,35 @@ public class ShooterAction extends Action {
 
     private SeqAction shootAllSteps() {
         SeqAction seqAction = new SeqAction("shootAll");
-        seqAction.addAction(this.shootStartAction());
-        seqAction.addAction(this.waitingForAiming());
 
+        seqAction.addAction(this.waitingForAiming());
+        seqAction.addAction(this.shootStartAction());
+
+        // 1st shoot
+        seqAction.addAction(this.waitingForLaunchMotorSpeed());
         seqAction.addAction(this.setIntakePower(-0.6, 0));
-        seqAction.addAction(this.waitingForLaunchMotorDecompression1());
         //seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(this.waitingForLaunchMotorDecompression());
         //seqAction.addAction(this.waitingForBallInHood(false));
+        //seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 500));
 
+        // 2nd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
         seqAction.addAction(this.setIntakePower(-0.75, 0));
+        //seqAction.addAction(this.waitingForBallInHood(true));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
         //seqAction.addAction(this.waitingForBallInHood(true));
         //seqAction.addAction(this.waitingForBallInHood(false));
         seqAction.addAction(this.setIntakePower(0, 500));
 
+        // 3rd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
         seqAction.addAction(this.setIntakePower(-1, 0));
         //seqAction.addAction(this.waitingForBallInHood(true));
         //seqAction.addAction(this.waitingForBallInHood(false));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 0));
-        this.robot.opMode.telemetry.addData("hi","");
        /* seqAction.addAction(this.setIntakePower(-1, 0));
         seqAction.addAction(this.waitingForBallInHood(true));
         seqAction.addAction(this.waitingForLaunchMotorSpeed());*/
@@ -85,7 +99,8 @@ public class ShooterAction extends Action {
 
     private Action waitingForAiming() {
         Supplier<Boolean> step1Func = () -> {
-            return this.aprilTagTrackAct.aprilTagAimed();
+            boolean aimed = this.aprilTagTrackAct.aprilTagAimed();
+            return aimed;
         };
         return new CommonAction("aprilTagAiming", step1Func);
     }
@@ -108,25 +123,35 @@ public class ShooterAction extends Action {
     }
 
     private Action waitingForLaunchMotorSpeed() {
-        Supplier<Boolean> step1Func = () -> {
-            return this.robot.launchMotor.getVelocity() > 1150;
+        Supplier<Boolean> runFunc = () -> {
+           // return this.robot.launchMotor.getVelocity() > 1150;
+           return this.robot.launchMotor.getVelocity() >= curShooterVel - 50 &&
+                   this.robot.launchMotor.getVelocity() <= curShooterVel + 50;
         };
-        return new CommonAction("waitingLaunchMotor", step1Func);
+        Action act = new CommonAction("waitingLaunchMotor", runFunc);
+        return new EitherOneAction("waitingLaunchMotor", act, new SleepAction("timeout", 2000));
+        //return act;
     }
 
     private Action waitingForLaunchMotorDecompression() {
-        Supplier<Boolean> step1Func = () -> {
-            return this.robot.launchMotor.getVelocity() < 1100;
+        Supplier<Boolean> runFunc = () -> {
+            //return this.robot.launchMotor.getVelocity() < 1100;
+            return this.robot.launchMotor.getVelocity() <
+                    (curShooterVel * RobotConfig.shooterMotorDecompressionPer) ;
         };
-        return new CommonAction("waitingLaunchMotor", step1Func);
+        Action act =  new CommonAction("waitingLaunchMotor",runFunc);
+        return new EitherOneAction("waitingDepression", act, new SleepAction("timeout", 2000));
     }
 
-    private Action waitingForLaunchMotorDecompression1() {
+    /*private Action waitingForLaunchMotorDecompression1() {
         Supplier<Boolean> step1Func = () -> {
-            return this.robot.launchMotor.getVelocity() < 1200;
+            //return this.robot.launchMotor.getVelocity() < 1200;
+            return this.robot.launchMotor.getVelocity() <
+                    (RobotConfig.shooterMotorVelocity * RobotConfig.shooterMotorDecompressionPer) ;
         };
         return new CommonAction("waitingLaunchMotor", step1Func);
-    }
+    }*/
+
     private Action waitingForBallShoot() {
         Supplier<Boolean> step1Func = () -> {
             double ballDistance = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
@@ -144,15 +169,27 @@ public class ShooterAction extends Action {
         return new CommonAction("waitingBallShoot", step1Func);
     }
 
-    private double getLaunchPower() {
-        double ty = this.aprilTagTrackAct.getTy();
-        return -0.5;
+    private double getLaunchVelocity() {
+        this.curLlTy = this.aprilTagTrackAct.getTy();
+        this.curShooterVel = RobotConfig.shooterMotorVelocity;
+
+        /*double yInt = 1263; //a value in LSRL equation
+        double slope = -16.15; //b value in LSRL equation
+        double bx = slope * this.curLlTy;
+        this.curShooterVel = bx + yInt;*/
+        double yInt = 1332; //1301; //a value in LSRL equation
+        double slope = -19.70; //b value in LSRL equation
+        double bx = slope * this.curLlTy;
+        this.curShooterVel = bx + yInt;
+
+        return this.curShooterVel;
     }
 
     private Action shootStartAction() {
         Supplier<Boolean> step1Func = () -> {
             this.robot.leftLaunchAngle.setPosition(0.8);
-            this.robot.launchMotor.setPower(0.5);
+            double velocity = this.getLaunchVelocity();
+            this.robot.launchMotor.setVelocity(velocity);
             this.robot.optakeMotor.setPower(1);
             return true;
         };

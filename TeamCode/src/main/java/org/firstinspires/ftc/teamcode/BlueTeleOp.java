@@ -45,6 +45,7 @@ public class BlueTeleOp extends LinearOpMode {
 
         waitForStart();
 
+        robot.enableManualDrive();
         robot.start();
 
         int i = 0;

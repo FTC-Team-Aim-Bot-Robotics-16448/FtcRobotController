@@ -116,10 +116,16 @@ public class Robot {
         turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        /*MotorConfigurationType motorConfigurationType = launchMotor.getMotorType().clone();
+        motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
+        launchMotor.setMotorType(motorConfigurationType);*/
+
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         leftLaunchAngle.setPosition(1);
+
+
     }
 
     public void init(OpMode opMode, Pose startPos) {
@@ -139,7 +145,6 @@ public class Robot {
     }
 
     public void start() {
-        this.enableManualDrive();
         leftLaunchAngle.setPosition(0.6);
     }
 
@@ -236,7 +241,9 @@ public class Robot {
 
     public void update() {
         follower.update();
-        handleRobotMove();
+        if (manualDriveEnabled) {
+            handleRobotMove();
+        }
         if (RobotConfig.cameraEnabled) {
             vision.update();
         }
