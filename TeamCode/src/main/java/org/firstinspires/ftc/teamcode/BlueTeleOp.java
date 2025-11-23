@@ -47,7 +47,7 @@ public class BlueTeleOp extends LinearOpMode {
 
         robot.enableManualDrive();
         robot.start();
-        
+
         int i = 0;
         while (opModeIsActive()) {
             robot.update();
