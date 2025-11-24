@@ -33,17 +33,18 @@ public class RedAuto extends OpMode {
     private final Pose startPose = new Pose(126.1, 121, Math.toRadians(37)); // Start Pose of our robot.
 
     private final Pose gatePose = new Pose(130, 69.41226215644821, Math.toRadians(90));
-    private final Pose scorePose = new Pose(88.3, 87.3, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose scorePose = new Pose(83.3, 92.3, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose start1Pose = new Pose(100, 83.41649048625793, Math.toRadians(0));
-    private final Pose pickup1Pose = new Pose(125.73361522198732, 83.41649048625793, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1Pose = new Pose(128.5, 83.41649048625793, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose start2Pose = new Pose(103.50951374207189, 58.7568710359408, Math.toRadians(0));
     private final Pose pickup2Pose = new Pose(125.73361522198732, 59.36575052854123, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
     private final Pose start3Pose = new Pose(105.03171247357295, 35.315010570824526, Math.toRadians(0));
     private final Pose pickup3Pose = new Pose(125.4291754756871, 35.315010570824526, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     private PathChain scorePreload;
-    private PathChain grabStart1, grabPickup1;
-    private PathChain scorePickup1, openGate, grabPickup2, scorePickup2, grabPickup3, scorePickup3;
+    private PathChain grabStart1, grabPickup1, scorePickup1, openGate ;
+    private PathChain grabStart2, grabPickup2, scorePickup2;
+    private PathChain grabStart3, grabPickup3, scorePickup3;
 
     private final double SCORING_DELAY_SECONDS = 5.0; // 5 seconds delay for scoring actions
     private final double PATH_PAUSE_DELAY_SECONDS = 1.0; // 1 second delay after path completion
@@ -54,7 +55,7 @@ public class RedAuto extends OpMode {
                 .addPath(new BezierLine(startPose, scorePose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .build();
-        
+
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabStart1 = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, start1Pose))
@@ -67,25 +68,24 @@ public class RedAuto extends OpMode {
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(gatePose, scorePose))
+                .setLinearHeadingInterpolation(gatePose.getHeading(), scorePose.getHeading())
                 .build();
 
         openGate = follower.pathBuilder()
-                .setBrakingStart(brakingStart)
                 .addPath(new BezierLine(pickup1Pose, gatePose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), gatePose.getHeading())
                 .build();
 
         /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        grabStart2 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, start2Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), start2Pose.getHeading())
+                .build();
         grabPickup2 = follower.pathBuilder()
-                .setBrakingStart(brakingStart)
-                .addPath(new BezierLine(gatePose, start2Pose))
-                .setLinearHeadingInterpolation(gatePose.getHeading(), start2Pose.getHeading())
                 .addPath(new BezierLine(start2Pose, pickup2Pose))
                 .setLinearHeadingInterpolation(start2Pose.getHeading(), pickup2Pose.getHeading())
                 .build();
-
         /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(pickup2Pose, scorePose))
@@ -118,13 +118,55 @@ public class RedAuto extends OpMode {
                 if (!follower.isBusy()) {
                     this.shootAction = this.robot.createShooterAction(1);
                     this.shootAction.start();
-                    setPathState(10);
+                    setPathState(11);
                 }
                 break;
-            case 10:
+            case 11:
                 this.shootAction.update();
                 if (this.shootAction.isFinished()) {
                     follower.followPath(grabStart1, true);
+                    setPathState(12);
+                }
+                break;
+            case 12:
+                if (!follower.isBusy()) {
+                    this.intakeAction = this.robot.createIntakeAction(false);
+                    this.intakeAction.start();
+                    follower.followPath(grabPickup1, 0.65, true);
+                    setPathState(13);
+                }
+                break;
+            case 13:
+                if (!follower.isBusy()) {
+                    setPathState(14);
+                }
+                break;
+            case 14:
+                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                    this.intakeAction.stop();
+                    setPathState(15);
+                }
+            case 15: // Initiate openGate
+                follower.followPath(openGate);
+                setPathState(16); // Transition to a new state to wait for openGate to finish
+                break;
+            case 16: // Wait for openGate to complete
+                if (!follower.isBusy()) {
+                    follower.followPath(scorePickup1);
+                    setPathState(17); // Transition to a new state for path pause after openGate
+                }
+                break;
+            case 17:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(18);
+                }
+                break;
+            case 18:
+                this.shootAction.update();
+                if (this.shootAction.isFinished()) {
+                    follower.followPath(grabStart2, true);
                     setPathState(2);
                 }
                 break;
@@ -132,69 +174,93 @@ public class RedAuto extends OpMode {
                 if (!follower.isBusy()) {
                     this.intakeAction = this.robot.createIntakeAction(false);
                     this.intakeAction.start();
-                    follower.followPath(grabPickup1, 0.2, true);
+                    follower.followPath(grabPickup2, 0.65, true);
+                    setPathState(21);
+                }
+                break;
+            case 21:
+                if (!follower.isBusy()) {
+                    setPathState(22);
+                }
+                break;
+            case 22:
+                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                    this.intakeAction.stop();
+                    follower.followPath(scorePickup2);
+                    setPathState(23);
+                }
+            case 23:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(24);
+                }
+                break;
+            case 24:
+                this.shootAction.update();
+                if (this.shootAction.isFinished()) {
+                    follower.followPath(grabStart3, true);
                     setPathState(3);
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
+                    this.intakeAction = this.robot.createIntakeAction(false);
+                    this.intakeAction.start();
+                    follower.followPath(grabPickup3, 0.65, true);
+                    setPathState(31);
+                }
+                break;
+            case 31:
+                if (!follower.isBusy()) {
+                    setPathState(32);
+                }
+                break;
+            case 32:
+                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     this.intakeAction.stop();
+                    follower.followPath(scorePickup3);
+                    setPathState(33);
+                }
+            case 33:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(34);
+                }
+                break;
+            case 34:
+                this.shootAction.update();
+                if (this.shootAction.isFinished()) {
+                    //follower.followPath(grabStart3, true);
                     setPathState(-1);
                 }
                 break;
-            case 8: // Initiate openGate
-                follower.followPath(openGate);
-                setPathState(40); // Transition to a new state to wait for openGate to finish
-                break;
-            case 40: // Wait for openGate to complete
+           /* case 6:
                 if (!follower.isBusy()) {
-                    setPathState(41); // Transition to a new state for path pause after openGate
-                }
-                break;
-            case 41: // Path pause after openGate
-                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
-                    // Now proceed to grabPickup2 logic which starts in case 4
-                    setPathState(4);
-                }
-                break;
-            case 4:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
-                if (!follower.isBusy()) {
-                    /* Grab Sample */
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(grabPickup2, true);
-                    setPathState(5);
-                }
-                break;
-            case 5:
-                /* This case checks the robot's position and will will wait until the robot position is close (1 inch away) from the scorePose's position */
-                if (!follower.isBusy()) {
-                    /* Score Sample */
-                    // Corrected: After grabPickup2, we score the second pickup
+                     // Corrected: After grabPickup2, we score the second pickup
                     follower.followPath(scorePickup2, true);
                     setPathState(12); // Transition to a new state for the third delay
                 }
                 break;
             case 12: // Third non-blocking delay (after scorePickup2)
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
-                    setPathState(6); // After delay, proceed to grab pickup 3
+                    setPathState(7); // After delay, proceed to grab pickup 3
                 }
                 break;
-            case 6:
+            case 7:
                 if (!follower.isBusy()) {
                     setPathState(30); // Transition to a new state for path pause after previous path
                 }
                 break;
             case 30: // Path pause after previous path, before grabPickup3
                 if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
-                    /* Grab Sample */
-                    follower.followPath(grabPickup3, true);
-                    setPathState(7);
+                     follower.followPath(grabPickup3, true);
+                    setPathState(9);
                 }
                 break;
-            case 7:
+            case 9:
                 if (!follower.isBusy()) {
-                    /* Score Sample */
                     follower.followPath(scorePickup3, true);
                     setPathState(13); // Transition to a new state for the fourth delay
                 }
@@ -206,10 +272,9 @@ public class RedAuto extends OpMode {
                 break;
             case 31: // Path pause before stopping
                 if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
-                    /* Set the state to a Case we won't use or define, so it just stops running an new paths */
                     setPathState(-1);
                 }
-                break;
+                break;*/
         }
     }
 

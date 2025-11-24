@@ -34,8 +34,8 @@ public class RobotConfig {
     // camera
     public static boolean cameraEnabled = true;
     public static String cameraName = "limelight";
-    public static double cameraHeight = 282;
-    public static double cameraAngel = 0;
+    public static double cameraHeight = 323.85;
+    public static double cameraAngel = 10;
     public static double targetHeight = 63.5;
     public static int limeLightDetectBallPipeLine = 8;
     public static double cameraToCentorStrafe = -80; // on left of center
@@ -43,7 +43,7 @@ public class RobotConfig {
     public static double intakeToCenterForward = 240; //  forward of center
 
     public static int limeLightGoalAirTaglPipeLine = 0;
-    public static double goalAirTagHeight =  477; // mm
+    public static double goalAirTagHeight =  749.3; // mm
     public static double goalAirTagX = 1387; // mm
     public static double goalAirTagY = 2112; // mm
 
