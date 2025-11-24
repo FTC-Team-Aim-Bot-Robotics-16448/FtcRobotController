@@ -10,6 +10,12 @@ import org.firstinspires.ftc.teamcode.aim.action.SeqAction;
 import  org.firstinspires.ftc.teamcode.RobotConfig;
 import org.firstinspires.ftc.teamcode.aim.action.SleepAction;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 public class ShooterAction extends Action {
@@ -23,12 +29,48 @@ public class ShooterAction extends Action {
     private double curShooterVel = 0;
     private double curLlDist = 0;
 
+    // CSV logging
+    private static final boolean ENABLE_CSV_LOGGING = true; // Set to false to disable logging
+    private FileWriter csvWriter = null;
+    private long shootStartTime = 0;
+
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
         this.robot = robot;
         this.seqAct = this.shootAllSteps();
         this.llPipeLineForAiming = llPipeLineForAiming;
         this.aprilTagTrackAct = this.robot.createAprilTagTrackingAction(this.llPipeLineForAiming);
+
+        if (ENABLE_CSV_LOGGING) {
+            this.initCSVLogging();
+        }
+    }
+
+    private void initCSVLogging() {
+        try {
+            // Create timestamp for unique filename
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+            String filename = "shooter_velocity_" + timestamp + ".csv";
+
+            // Save to FIRST directory for easy access via REV Hub web UI
+            File logDir = new File("/sdcard/FIRST/logs");
+            if (!logDir.exists()) {
+                logDir.mkdirs();
+            }
+
+            File logFile = new File(logDir, filename);
+            csvWriter = new FileWriter(logFile);
+
+            // Write CSV header
+            csvWriter.write("timestamp_ms,elapsed_ms,target_velocity,actual_velocity,decompression_threshold,current_action\n");
+            csvWriter.flush();
+
+            shootStartTime = System.currentTimeMillis();
+
+            robot.opMode.telemetry.addData("Shooter Log", "Created: " + filename);
+        } catch (IOException e) {
+            robot.opMode.telemetry.addData("Shooter Log Error", e.getMessage());
+        }
     }
 
     @Override
@@ -36,7 +78,31 @@ public class ShooterAction extends Action {
         this.aprilTagTrackAct.run();
         this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
                 this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
+
+        // Log velocity data to CSV
+        this.logVelocityData();
+
         return this.seqAct.run();
+    }
+
+    private void logVelocityData() {
+        if (csvWriter == null) return;
+
+        try {
+            long currentTime = System.currentTimeMillis();
+            long elapsed = currentTime - shootStartTime;
+            double actualVelocity = this.robot.launchMotor.getVelocity();
+            double decompressionThreshold = this.curShooterVel * RobotConfig.shooterMotorDecompressionPer;
+            String currentAction = this.seqAct != null ? this.seqAct.getName() : "unknown";
+
+            // Write data row: timestamp, elapsed, target, actual, threshold, action
+            csvWriter.write(String.format(Locale.US, "%d,%d,%.2f,%.2f,%.2f,%s\n",
+                    currentTime, elapsed, this.curShooterVel, actualVelocity,
+                    decompressionThreshold, currentAction));
+            csvWriter.flush(); // Flush immediately to ensure data is written even if crash occurs
+        } catch (IOException e) {
+            // Silently fail to avoid disrupting robot operation
+        }
     }
 
     @Override
@@ -46,6 +112,16 @@ public class ShooterAction extends Action {
         this.robot.intakeMotor.setPower(0);
         this.robot.launchMotor.setPower(0);
         this.robot.optakeMotor.setPower(0);
+
+        // Close CSV file
+        if (csvWriter != null) {
+            try {
+                csvWriter.close();
+                robot.opMode.telemetry.addData("Shooter Log", "Closed successfully");
+            } catch (IOException e) {
+                robot.opMode.telemetry.addData("Shooter Log Error", "Failed to close");
+            }
+        }
     }
 
     private SeqAction shootAllSteps() {
@@ -56,27 +132,22 @@ public class ShooterAction extends Action {
 
         // 1st shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(-0.6, 0));
-        //seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
+        seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
-        //seqAction.addAction(this.waitingForBallInHood(false));
-        //seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 500));
 
         // 2nd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(-0.75, 0));
-        //seqAction.addAction(this.waitingForBallInHood(true));
+        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
+        seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
-        //seqAction.addAction(this.waitingForBallInHood(true));
-        //seqAction.addAction(this.waitingForBallInHood(false));
         seqAction.addAction(this.setIntakePower(0, 500));
 
         // 3rd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(-1, 0));
-        //seqAction.addAction(this.waitingForBallInHood(true));
-        //seqAction.addAction(this.waitingForBallInHood(false));
+        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
+        seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 0));
        /* seqAction.addAction(this.setIntakePower(-1, 0));
@@ -125,13 +196,11 @@ public class ShooterAction extends Action {
 
     private Action waitingForLaunchMotorSpeed() {
         Supplier<Boolean> runFunc = () -> {
-           // return this.robot.launchMotor.getVelocity() > 1150;
-           return this.robot.launchMotor.getVelocity() >= curShooterVel - 50 &&
-                   this.robot.launchMotor.getVelocity() <= curShooterVel + 50;
+            return this.robot.launchMotor.getVelocity() >= curShooterVel - 25 &&
+                   this.robot.launchMotor.getVelocity() <= curShooterVel + 25;
         };
         Action act = new CommonAction("waitingLaunchMotor", runFunc);
         return new EitherOneAction("waitingLaunchMotor", act, new SleepAction("timeout", 2000));
-        //return act;
     }
 
     private Action waitingForLaunchMotorDecompression() {
