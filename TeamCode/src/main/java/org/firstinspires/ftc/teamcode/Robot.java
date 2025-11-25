@@ -76,8 +76,10 @@ public class Robot {
 
     private void initOdometry(Pose startPose) {
         follower = Constants.createFollower(this.opMode.hardwareMap);
-        follower.setStartingPose(startPose);
-        follower.update();
+        if (startPose != null) {
+            follower.setStartingPose(startPose);
+            follower.update();
+        }
     }
 
     public void enableManualDrive() {
