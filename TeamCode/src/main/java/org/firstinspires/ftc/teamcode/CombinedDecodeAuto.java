@@ -7,7 +7,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 @Autonomous(name = "2-in-1 Decode Auto", group = "Examples")
-public class CombinedDecodeAuto extends OpMode {
+public class CombinedDecodeAuto extends LinearOpMode {
     private Robot robot = new Robot();
     private Follower follower;
     private boolean shouldMirror = false;
@@ -72,8 +72,8 @@ public class CombinedDecodeAuto extends OpMode {
         telemetry.addLine("Use gamepad to select options");
         telemetry.update();
 
-        String selectedOption = menu.show(gamepad1, telemetry);
-
+        //String selectedOption = menu.show(gamepad1, telemetry);
+        String selectedOption = "/Red/CloseStart1/1line";
         this.initPos();
         follower.setStartingPose(this.startPose);
         follower.update();
@@ -134,9 +134,9 @@ public class CombinedDecodeAuto extends OpMode {
                         target.getHeading()
                 ).build();
         return chain;
-     }
+    }
 
-     private static Pose midpointControl(Pose start, Pose target) {
+    private static Pose midpointControl(Pose start, Pose target) {
         double midX = (start.getX() + target.getX()) / 2.0;
         double midY = (start.getY() + target.getY()) / 2.0;
         return new Pose(midX, midY, target.getHeading());
@@ -166,7 +166,7 @@ public class CombinedDecodeAuto extends OpMode {
         Supplier<PathChain> pathChainGenFunc = () -> {
             return followLineToPose(gatePose);
         };
-         return new PedroPathingAction("followToOpenGate", this.follower, pathChainGenFunc, 0.3, true);
+        return new PedroPathingAction("followToOpenGate", this.follower, pathChainGenFunc, 0.3, true);
     }
 
     private Action followToIntakeAct(int line) {
@@ -254,56 +254,31 @@ public class CombinedDecodeAuto extends OpMode {
         return seqAct;
     }
 
-    /**
-     * This is the main loop of the OpMode, it will run repeatedly after clicking "Play".
-     **/
     @Override
-    public void loop() {
-        robot.update();
-        if (autoAction != null) {
-            autoAction.update();
-        }
-
-        // Feedback to Driver Hub for debugging
-        telemetry.addData("path state", autoAction.toString());
-        telemetry.addData("x", follower.getPose().getX());
-        telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.update();
-    }
-
-    /**
-     * This method is called once at the init of the OpMode.
-     **/
-    @Override
-    public void init() {
+    public void runOpMode() {
         robot.init(this, null);
         follower = robot.follower;
         this.selectMenu();
-    }
 
-    /**
-     * This method is called continuously after Init while waiting for "play".
-     **/
-    @Override
-    public void init_loop() {
-    }
+        waitForStart();
 
-    /**
-     * This method is called once at the start of the OpMode.
-     * It runs all the setup actions, including building paths and starting the path system
-     **/
-    @Override
-    public void start() {
         robot.start();
         autoAction.start();
-    }
 
-    /**
-     * We do not use this because everything should automatically disable
-     **/
-    @Override
-    public void stop() {
+        while (opModeIsActive()) {
+            robot.update();
+            if (autoAction != null) {
+                autoAction.update();
+            }
+
+            // Feedback to Driver Hub for debugging
+            telemetry.addData("path state", autoAction.toString());
+            telemetry.addData("x", follower.getPose().getX());
+            telemetry.addData("y", follower.getPose().getY());
+            telemetry.addData("heading", follower.getPose().getHeading());
+            telemetry.update();
+        }
+
         autoAction.stop();
     }
 }

@@ -30,9 +30,13 @@ public class ShooterAction extends Action {
     private double curLlDist = 0;
 
     // CSV logging
-    private static final boolean ENABLE_CSV_LOGGING = true; // Set to false to disable logging
+    private static final boolean ENABLE_CSV_LOGGING = false; // Set to false to disable logging
     private FileWriter csvWriter = null;
     private long shootStartTime = 0;
+
+    public String toString() {
+        return "goalDistance=" + this.curLlDist +" velocity=" + this.curShooterVel;
+    }
 
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
@@ -76,8 +80,8 @@ public class ShooterAction extends Action {
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
-        this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
-                this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
+        //this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
+        //        this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
 
         // Log velocity data to CSV
         this.logVelocityData();
@@ -132,7 +136,7 @@ public class ShooterAction extends Action {
 
         // 1st shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
+        //seqAction.addAction(new SleepAction("stabilize", 500)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 500));
@@ -254,10 +258,11 @@ public class ShooterAction extends Action {
         double bx = slope * this.curLlTy;
         this.curShooterVel = bx + yInt;*/
 
-        double yInt = 821.1; //1301; //a value in LSRL equation
-        double slope = 0.2727; //b value in LSRL equation
+        double yInt = 832.5; //821.1; //1301; //a value in LSRL equation
+        double slope = 0.2163; //0.2727; //b value in LSRL equation
         double bx = slope * this.curLlDist;
         this.curShooterVel = bx + yInt;
+
 
         return this.curShooterVel;
     }

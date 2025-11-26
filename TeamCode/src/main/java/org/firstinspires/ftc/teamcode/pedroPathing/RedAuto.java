@@ -8,14 +8,14 @@ import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 
 @Autonomous(name = "Example Auto", group = "Examples")
-public class RedAuto extends OpMode {
+public class RedAuto extends LinearOpMode {
 
     private Robot robot = new Robot();
     private Follower follower;
@@ -25,7 +25,7 @@ public class RedAuto extends OpMode {
 
     private int pathState;
 
-    private ShooterAction shootAction  = null;
+    private ShooterAction shootAction = null;
     private Action intakeAction = null;
 
     private Action airTagTrackingAction = null;
@@ -42,7 +42,7 @@ public class RedAuto extends OpMode {
     private final Pose pickup3Pose = new Pose(125.4291754756871, 35.315010570824526, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     private PathChain scorePreload;
-    private PathChain grabStart1, grabPickup1, scorePickup1, openGate ;
+    private PathChain grabStart1, grabPickup1, scorePickup1, openGate;
     private PathChain grabStart2, grabPickup2, scorePickup2;
     private PathChain grabStart3, grabPickup3, scorePickup3;
 
@@ -286,29 +286,8 @@ public class RedAuto extends OpMode {
         pathTimer.resetTimer();
     }
 
-    /**
-     * This is the main loop of the OpMode, it will run repeatedly after clicking "Play".
-     **/
     @Override
-    public void loop() {
-        robot.update();
-        // These loop the movements of the robot, these must be called continuously in order to work
-        //follower.update();
-        autonomousPathUpdate();
-
-        // Feedback to Driver Hub for debugging
-        telemetry.addData("path state", pathState);
-        telemetry.addData("x", follower.getPose().getX());
-        telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.update();
-    }
-
-    /**
-     * This method is called once at the init of the OpMode.
-     **/
-    @Override
-    public void init() {
+    public void runOpMode() {
         robot.init(this, this.startPose);
 
         pathTimer = new Timer();
@@ -318,35 +297,29 @@ public class RedAuto extends OpMode {
         follower = robot.follower; //Constants.createFollower(hardwareMap);
         try {
             buildPaths();
-        } catch (RuntimeException e) { // Changed to RuntimeException because InterruptedException is removed
+        } catch (
+                RuntimeException e) { // Changed to RuntimeException because InterruptedException is removed
             throw new RuntimeException(e);
         }
-       // follower.setStartingPose(startPose);
 
-    }
+        waitForStart();
 
-    /**
-     * This method is called continuously after Init while waiting for "play".
-     **/
-    @Override
-    public void init_loop() {
-    }
-
-    /**
-     * This method is called once at the start of the OpMode.
-     * It runs all the setup actions, including building paths and starting the path system
-     **/
-    @Override
-    public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
         robot.start();
-    }
 
-    /**
-     * We do not use this because everything should automatically disable
-     **/
-    @Override
-    public void stop() {
+        while (opModeIsActive()) {
+            robot.update();
+            // These loop the movements of the robot, these must be called continuously in order to work
+            //follower.update();
+            autonomousPathUpdate();
+
+            // Feedback to Driver Hub for debugging
+            telemetry.addData("path state", pathState);
+            telemetry.addData("x", follower.getPose().getX());
+            telemetry.addData("y", follower.getPose().getY());
+            telemetry.addData("heading", follower.getPose().getHeading());
+            telemetry.update();
+        }
     }
 }
