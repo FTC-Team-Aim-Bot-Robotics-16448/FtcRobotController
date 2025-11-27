@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
 import org.firstinspires.ftc.teamcode.aim.action.EitherOneAction;
 import org.firstinspires.ftc.teamcode.aim.action.PedroPathingAction;
 import org.firstinspires.ftc.teamcode.aim.action.SeqAction;
+import org.firstinspires.ftc.teamcode.aim.action.SleepAction;
 import org.firstinspires.ftc.teamcode.aim.components.Menu;
 
 import java.util.Locale;
@@ -72,8 +73,8 @@ public class CombinedDecodeAuto extends LinearOpMode {
         telemetry.addLine("Use gamepad to select options");
         telemetry.update();
 
-        //String selectedOption = menu.show(gamepad1, telemetry);
-        String selectedOption = "/Red/CloseStart1/1line";
+        String selectedOption = menu.show(gamepad1, telemetry);
+        //String selectedOption = "/Red/CloseStart1/1line";
         this.initPos();
         follower.setStartingPose(this.startPose);
         follower.update();
@@ -209,8 +210,13 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
         Action followActWithDelay = new ActionWithDelay("intakingDelay", followAct, 2000);
 
-        Action intakeAct = this.robot.createIntakeAction(false);
-        Action act2 = new EitherOneAction(
+        Action act2, intakeAct;
+        if (RobotConfig.shooterEnabled) {
+            intakeAct = this.robot.createIntakeAction(false);
+         } else {
+            intakeAct = new SleepAction("sleep", 300000);
+         }
+        act2 = new EitherOneAction(
                 String.format(Locale.US, "intaking%d", line),
                 followActWithDelay, intakeAct);
 
@@ -222,7 +228,11 @@ public class CombinedDecodeAuto extends LinearOpMode {
     }
 
     Action shootAct() {
-        return this.robot.createShooterAction(goalAprilTagPipeLine);
+        if (RobotConfig.shooterEnabled) {
+            return this.robot.createShooterAction(goalAprilTagPipeLine);
+        } else {
+            return new SleepAction("sleep", 10000);
+        }
     }
 
     Action createFinalAction(int totalLines, boolean openGate) {
