@@ -36,64 +36,14 @@ public class ShooterAction extends Action {
         this.llPipeLineForAiming = llPipeLineForAiming;
         this.aprilTagTrackAct = this.robot.createAprilTagTrackingAction(this.llPipeLineForAiming);
 
-        if (ENABLE_CSV_LOGGING) {
-            this.initCSVLogging();
-        }
-    }
-
-    private void initCSVLogging() {
-        try {
-            // Create timestamp for unique filename
-            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-            String filename = "shooter_velocity_" + timestamp + ".csv";
-
-            // Save to FIRST directory for easy access via REV Hub web UI
-            File logDir = new File("/sdcard/FIRST/logs");
-            if (!logDir.exists()) {
-                logDir.mkdirs();
-            }
-
-            File logFile = new File(logDir, filename);
-            csvWriter = new FileWriter(logFile);
-
-            // Write CSV header
-            csvWriter.write("timestamp_ms,elapsed_ms,target_velocity,actual_velocity,decompression_threshold,current_action\n");
-            csvWriter.flush();
-
-            shootStartTime = System.currentTimeMillis();
-
-            robot.opMode.telemetry.addData("Shooter Log", "Created: " + filename);
-        } catch (IOException e) {
-            robot.opMode.telemetry.addData("Shooter Log Error", e.getMessage());
-        }
     }
 
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
-        this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
-                this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
+        //this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
+        //        this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
         return this.seqAct.run();
-    }
-
-    private void logVelocityData() {
-        if (csvWriter == null) return;
-
-        try {
-            long currentTime = System.currentTimeMillis();
-            long elapsed = currentTime - shootStartTime;
-            double actualVelocity = this.robot.launchMotor.getVelocity();
-            double decompressionThreshold = this.curShooterVel * RobotConfig.shooterMotorDecompressionPer;
-            String currentAction = this.seqAct != null ? this.seqAct.getName() : "unknown";
-
-            // Write data row: timestamp, elapsed, target, actual, threshold, action
-            csvWriter.write(String.format(Locale.US, "%d,%d,%.2f,%.2f,%.2f,%s\n",
-                    currentTime, elapsed, this.curShooterVel, actualVelocity,
-                    decompressionThreshold, currentAction));
-            csvWriter.flush(); // Flush immediately to ensure data is written even if crash occurs
-        } catch (IOException e) {
-            // Silently fail to avoid disrupting robot operation
-        }
     }
 
     @Override
@@ -103,16 +53,6 @@ public class ShooterAction extends Action {
         this.robot.intakeMotor.setPower(0);
         this.robot.launchMotor.setPower(0);
         this.robot.optakeMotor.setPower(0);
-
-        // Close CSV file
-        if (csvWriter != null) {
-            try {
-                csvWriter.close();
-                robot.opMode.telemetry.addData("Shooter Log", "Closed successfully");
-            } catch (IOException e) {
-                robot.opMode.telemetry.addData("Shooter Log Error", "Failed to close");
-            }
-        }
     }
 
     private SeqAction shootAllSteps() {
