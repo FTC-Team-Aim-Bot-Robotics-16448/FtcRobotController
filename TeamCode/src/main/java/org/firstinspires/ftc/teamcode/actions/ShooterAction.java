@@ -29,15 +29,6 @@ public class ShooterAction extends Action {
     private double curShooterVel = 0;
     private double curLlDist = 0;
 
-    // CSV logging
-    private static final boolean ENABLE_CSV_LOGGING = false; // Set to false to disable logging
-    private FileWriter csvWriter = null;
-    private long shootStartTime = 0;
-
-    public String toString() {
-        return "goalDistance=" + this.curLlDist +" velocity=" + this.curShooterVel;
-    }
-
     public ShooterAction(Robot robot, int llPipeLineForAiming) {
         super("Shoot");
         this.robot = robot;
@@ -80,12 +71,8 @@ public class ShooterAction extends Action {
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
-        //this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
-        //        this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
-
-        // Log velocity data to CSV
-        this.logVelocityData();
-
+        this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
+                this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
         return this.seqAct.run();
     }
 
