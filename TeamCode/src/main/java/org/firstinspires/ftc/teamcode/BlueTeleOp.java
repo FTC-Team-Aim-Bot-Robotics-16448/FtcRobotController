@@ -46,7 +46,7 @@ public class BlueTeleOp extends LinearOpMode {
         waitForStart();
 
         robot.enableManualDrive();
-        robot.start();
+        robot.start(getApriltagAimingPipeline());
 
         int i = 0;
         while (opModeIsActive()) {

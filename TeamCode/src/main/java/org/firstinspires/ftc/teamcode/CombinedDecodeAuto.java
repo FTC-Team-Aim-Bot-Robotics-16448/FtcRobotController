@@ -229,7 +229,9 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
     Action shootAct() {
         if (RobotConfig.shooterEnabled) {
-            return this.robot.createShooterAction(goalAprilTagPipeLine);
+            ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine);
+            act.enableFixedDisCalMode(1100);
+            return act;
         } else {
             return new SleepAction("sleep", 10000);
         }
@@ -272,7 +274,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
         waitForStart();
 
-        robot.start();
+        robot.start(goalAprilTagPipeLine);
         autoAction.start();
 
         while (opModeIsActive()) {

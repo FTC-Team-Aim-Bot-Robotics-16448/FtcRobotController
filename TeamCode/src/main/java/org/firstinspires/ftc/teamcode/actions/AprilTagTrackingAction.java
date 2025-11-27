@@ -21,6 +21,7 @@ public class AprilTagTrackingAction extends Action {
     private double lastPower = 0;
     private double lastDist = 0;
     private double turretPos = 0;
+    private boolean turretTurningEnabled = false;
     private boolean aimed = false;
 
     public AprilTagTrackingAction(Robot robot, int limelightPipeLine, double airTagHeight) {
@@ -68,6 +69,9 @@ public class AprilTagTrackingAction extends Action {
     public double getDistance() {
         return this.lastDist;
     }
+    public void enableTurretTurning(boolean enabled) {
+        this.turretTurningEnabled = enabled;
+    }
 
     @Override
     public boolean run() {
@@ -89,7 +93,7 @@ public class AprilTagTrackingAction extends Action {
                 // tx > 0 means target is to the right
                 // tx < 0 means target is to the left
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
-                if (detectionRet == null) {
+                if (detectionRet == null && this.turretTurningEnabled) {
                     this.robot.turnTurret(0);
                     return false;
                 }
@@ -98,30 +102,23 @@ public class AprilTagTrackingAction extends Action {
                 this.lastTy = detectionRet.ty;
                 this.lastDist = detectionRet.distance;
 
+                if (!this.turretTurningEnabled) {
+                    this.robot.turretMotor.setPower(0);
+                    return false;
+                }
                 // Use PID controller to calculate turn power
                 double turnPower = this.pidController.getOutput(this.lastTx);
                 this.lastPower = turnPower;
                 this.turretPos = this.robot.turretMotor.getCurrentPosition();
 
                 // Aimed at the AprilTag
-                if (this.pidController.inPosition()) {
+               /* if (this.pidController.inPosition()) {
                     this.robot.turretMotor.setPower(0);
                     this.aimed = true;
                     return false;
-                }
+                }*/
 
                 this.robot.turnTurret(turnPower);
-/*
-                // Limit the turret turning angle
-                if ((this.turretPos < -200 && turnPower < 0) ||
-                        (this.turretPos > 200 && turnPower > 0)) {
-                    this.robot.turretMotor.setPower(0);
-                    return false;
-                }
-
-                this.robot.turretMotor.setPower(turnPower);
-
- */
                 // We can also turn the robot to aim the AprilTag,
                 //this.robot.follower.setTeleOpDrive(0, 0, turnPower, true);
 
@@ -155,6 +152,6 @@ public class AprilTagTrackingAction extends Action {
     }
 
     public boolean aprilTagAimed() {
-        return this.aimed;
+        return Math.abs(this.lastTx) <= 1;
     }
 }

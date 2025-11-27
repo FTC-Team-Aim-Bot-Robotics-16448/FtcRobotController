@@ -48,7 +48,7 @@ public class ExampleTeleOp extends LinearOpMode {
 
         waitForStart();
 
-        robot.start();
+        robot.start(-1);
 
         int i = 0;
         while (opModeIsActive()) {

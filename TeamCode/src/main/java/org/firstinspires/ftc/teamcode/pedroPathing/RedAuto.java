@@ -306,7 +306,7 @@ public class RedAuto extends LinearOpMode {
 
         opmodeTimer.resetTimer();
         setPathState(0);
-        robot.start();
+        robot.start(-1);
 
         while (opModeIsActive()) {
             robot.update();

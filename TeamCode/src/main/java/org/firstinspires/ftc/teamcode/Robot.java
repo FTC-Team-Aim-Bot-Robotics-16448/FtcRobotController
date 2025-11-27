@@ -40,6 +40,7 @@ public class Robot {
     public Servo leftLaunchAngle, rightLaunchAngle;
     public DistanceSensor intakeDistSensor;
     public DistanceSensor shootDistSensor;
+    public AprilTagTrackingAction aprilTagTrackAct = null;
 
     private void initImu() {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
@@ -157,9 +158,13 @@ public class Robot {
         }
     }
 
-    public void start() {
+    public void start(int llPipeline) {
         if (RobotConfig.shooterEnabled) {
             leftLaunchAngle.setPosition(0.6);
+        }
+        if (RobotConfig.cameraEnabled && llPipeline >= 0) {
+            this.aprilTagTrackAct = this.createAprilTagTrackingAction(llPipeline);
+            this.aprilTagTrackAct.start();
         }
     }
 
@@ -261,6 +266,9 @@ public class Robot {
         }
         if (RobotConfig.cameraEnabled) {
             vision.update();
+            if (this.aprilTagTrackAct != null) {
+                this.aprilTagTrackAct.update();
+            }
         }
    }
 }

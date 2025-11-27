@@ -61,7 +61,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
 
         waitForStart();
 
-        robot.start();
+        robot.start(-1);
 
         while (opModeIsActive()) {
             robot.update();

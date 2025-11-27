@@ -7,8 +7,9 @@ import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
 import org.firstinspires.ftc.teamcode.aim.action.CommonAction;
 import org.firstinspires.ftc.teamcode.aim.action.EitherOneAction;
 import org.firstinspires.ftc.teamcode.aim.action.SeqAction;
-import  org.firstinspires.ftc.teamcode.RobotConfig;
+import org.firstinspires.ftc.teamcode.RobotConfig;
 import org.firstinspires.ftc.teamcode.aim.action.SleepAction;
+import org.firstinspires.ftc.teamcode.aim.utils.MathUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,11 +20,16 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 public class ShooterAction extends Action {
+    public enum DisCalMode {
+        CAMERA,
+        FIXED
+    }
     private final Robot robot;
     private SeqAction seqAct;
     public AprilTagTrackingAction aprilTagTrackAct;
     private int llPipeLineForAiming;
     private boolean prevBallInHood = false;
+    private DisCalMode disCalMode = DisCalMode.CAMERA;
 
     private double curLlTy = 0;
     private double curShooterVel = 0;
@@ -34,13 +40,17 @@ public class ShooterAction extends Action {
         this.robot = robot;
         this.seqAct = this.shootAllSteps();
         this.llPipeLineForAiming = llPipeLineForAiming;
-        this.aprilTagTrackAct = this.robot.createAprilTagTrackingAction(this.llPipeLineForAiming);
+        this.aprilTagTrackAct = this.robot.aprilTagTrackAct;
+    }
 
+    public void enableFixedDisCalMode(double vel) {
+        this.disCalMode = DisCalMode.FIXED;
+        this.curShooterVel = vel;
     }
 
     @Override
     public boolean run() {
-        this.aprilTagTrackAct.run();
+        this.aprilTagTrackAct.enableTurretTurning(true);
         //this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
         //        this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
         if (RobotConfig.shooterPanelsEnabled) {
@@ -53,7 +63,7 @@ public class ShooterAction extends Action {
 
     @Override
     protected void cleanup() {
-        this.aprilTagTrackAct.stop();
+        this.aprilTagTrackAct.enableTurretTurning(false);
         this.seqAct = null;
         this.robot.intakeMotor.setPower(0);
         this.robot.launchMotor.setPower(0);
@@ -63,8 +73,13 @@ public class ShooterAction extends Action {
     private SeqAction shootAllSteps() {
         SeqAction seqAction = new SeqAction("shootAll");
 
-        seqAction.addAction(this.waitingForAiming());
-        seqAction.addAction(this.shootStartAction());
+        if (this.disCalMode == DisCalMode.CAMERA) {
+            seqAction.addAction(this.waitingForAiming());
+            seqAction.addAction(this.shootStartAction());
+        } else if (this.disCalMode == DisCalMode.FIXED) {
+            seqAction.addAction(this.shootStartAction());
+            seqAction.addAction(this.waitingForAiming());
+        }
 
         // 1st shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
@@ -176,6 +191,9 @@ public class ShooterAction extends Action {
     }
 
     private double getLaunchVelocity() {
+        if (this.disCalMode == DisCalMode.FIXED) {
+            return this.curShooterVel;
+        }
         this.curLlTy = this.aprilTagTrackAct.getTy();
         this.curLlDist = Math.abs(this.aprilTagTrackAct.getDistance());
         this.curShooterVel = RobotConfig.shooterMotorVelocity;
