@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -21,7 +22,7 @@ public class Robot {
     private IMU imu = null;
     private DcMotor frontRightMotor, backRightMotor, frontLeftMotor, backLeftMotor;
     private MecanumIMUDrive driveCtrl;
-    public OpMode opMode;
+    public LinearOpMode opMode;
     private Button botRotateButton = new Button();
     private boolean botRotated = false;
     private boolean manualDriveEnabled = false;
@@ -56,7 +57,7 @@ public class Robot {
     private void initMecanumIMUDrive() {
         MecanumIMUDrive gryo = new MecanumIMUDrive();
         MecanumIMUDrive.InitParams params = gryo.defaultParams();
-        //params.opMode = this.opMode;
+        params.opMode = this.opMode;
         params.imuName = RobotConfig.imuName;
         params.frontLeftWheelName = RobotConfig.frontLeftWheelName;
         params.frontRightWheelName = RobotConfig.frontRightWheelName;
@@ -76,8 +77,10 @@ public class Robot {
 
     private void initOdometry(Pose startPose) {
         follower = Constants.createFollower(this.opMode.hardwareMap);
-        follower.setStartingPose(startPose);
-        follower.update();
+        if (startPose != null) {
+            follower.setStartingPose(startPose);
+            follower.update();
+        }
     }
 
     public void enableManualDrive() {
@@ -128,7 +131,7 @@ public class Robot {
 
     }
 
-    public void init(OpMode opMode, Pose startPos) {
+    public void init(LinearOpMode opMode, Pose startPos) {
         this.opMode = opMode;
         if (!RobotConfig.usePetroPathingManualDrive) {
             this.initImu();
