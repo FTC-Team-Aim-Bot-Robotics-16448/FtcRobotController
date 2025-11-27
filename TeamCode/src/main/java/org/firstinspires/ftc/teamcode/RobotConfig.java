@@ -25,6 +25,7 @@ public class RobotConfig {
     public static double shooterMotorVelocity = 1100;
     public static double shooterMotorVelocityPer = 0.98;
     public static double shooterMotorDecompressionPer = 0.9;
+    public static boolean shooterEnabled = true;
 
     // IMU config
     public static String imuName = "imu";

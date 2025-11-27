@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.aim.action;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 public class SeqAction extends Action {
     // A list to hold AutoAction items
@@ -11,6 +12,16 @@ public class SeqAction extends Action {
     public SeqAction(String name) {
         super(name);
         this.actions = new ArrayList<>();
+    }
+
+    public String toString() {
+        String s = super.toString();
+        for (Iterator<Action> it = actions.iterator(); it.hasNext();) {
+            Action act = it.next();
+            s += "\n  " + act.toString();
+        }
+
+        return s;
     }
 
     // Method to add an AutoAction to the list

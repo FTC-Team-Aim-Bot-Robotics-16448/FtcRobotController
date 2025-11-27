@@ -13,6 +13,16 @@ public class ParallelAction extends Action {
         this.actions = new ArrayList<>();
     }
 
+    public String toString() {
+        String s = super.toString();
+        for (Iterator<Action> it = actions.iterator(); it.hasNext();) {
+            Action act = it.next();
+            s += "\n  " + act.toString();
+        }
+
+        return s;
+    }
+
     // Method to add an AutoAction to the list
     public void addAction(Action action) {
         actions.add(action);
@@ -34,15 +44,5 @@ public class ParallelAction extends Action {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public String toString() {
-        String s = super.getName();
-        for (Iterator<Action> it = actions.iterator(); it.hasNext();) {
-            Action act = it.next();
-            s += "\n  " + act.toString();
-        }
-        return s;
     }
 }

@@ -144,11 +144,15 @@ public class Robot {
             this.initVision();
         }
 
-        initShooterSystem();
+        if (RobotConfig.shooterEnabled) {
+            initShooterSystem();
+        }
     }
 
     public void start() {
-        leftLaunchAngle.setPosition(0.6);
+        if (RobotConfig.shooterEnabled) {
+            leftLaunchAngle.setPosition(0.6);
+        }
     }
 
     public void handleRobotMove() {
