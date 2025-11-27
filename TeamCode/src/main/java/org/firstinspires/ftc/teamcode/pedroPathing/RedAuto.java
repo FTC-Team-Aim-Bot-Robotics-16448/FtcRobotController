@@ -115,16 +115,13 @@ public class RedAuto extends LinearOpMode {
         switch (pathState) {
             case 0:
                 follower.followPath(scorePreload, 0.9, true);
-                setPathState(1);
-                break;
-            case 1:
                 this.shootAction = this.robot.createShooterAction(1);
                 this.shootAction.start();
                 setPathState(11);
                 break;
             case 11:
                 this.shootAction.update();
-                if (this.shootAction.isFinished()) {
+                if (this.shootAction.isFinished() && !follower.isBusy()) {
                     follower.followPath(grabStart1, true);
                     setPathState(12);
                 }
@@ -154,20 +151,17 @@ public class RedAuto extends LinearOpMode {
                 follower.followPath(openGate);
                 setPathState(16); // Transition to a new state to wait for openGate to finish
                 break;
-            case 16: // Wait for openGate to complete
+            case 16: // Wait for openGate to complete, then start scorePickup1 and ShooterAction concurrently
                 if (!follower.isBusy()) {
                     follower.followPath(scorePickup1);
-                    setPathState(17); // Transition to a new state for path pause after openGate
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(17);
                 }
                 break;
             case 17:
-                this.shootAction = this.robot.createShooterAction(1);
-                this.shootAction.start();
-                setPathState(18);
-                break;
-            case 18:
                 this.shootAction.update();
-                if (this.shootAction.isFinished()) {
+                if (this.shootAction.isFinished() && !follower.isBusy()) {
                     follower.followPath(grabStart2, true);
                     setPathState(2);
                 }
@@ -191,17 +185,14 @@ public class RedAuto extends LinearOpMode {
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     this.intakeAction.stop();
                     follower.followPath(scorePickup2);
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
                     setPathState(23);
                 }
                 break;
             case 23:
-                this.shootAction = this.robot.createShooterAction(1);
-                this.shootAction.start();
-                setPathState(24);
-                break;
-            case 24:
                 this.shootAction.update();
-                if (this.shootAction.isFinished()) {
+                if (this.shootAction.isFinished() && !follower.isBusy()) {
                     follower.followPath(grabStart3, true);
                     setPathState(3);
                 }
@@ -225,17 +216,14 @@ public class RedAuto extends LinearOpMode {
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     this.intakeAction.stop();
                     follower.followPath(scorePickup3);
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
                     setPathState(33);
                 }
                 break;
             case 33:
-                this.shootAction = this.robot.createShooterAction(1);
-                this.shootAction.start();
-                setPathState(34);
-                break;
-            case 34:
                 this.shootAction.update();
-                if (this.shootAction.isFinished()) {
+                if (this.shootAction.isFinished() && !follower.isBusy()) {
                     //follower.followPath(grabStart3, true);
                     setPathState(-1);
                 }
@@ -270,8 +258,8 @@ public class RedAuto extends LinearOpMode {
         waitForStart();
 
         opmodeTimer.resetTimer();
+        robot.start(); // Moved robot.start() here
         setPathState(0);
-        robot.start();
 
         while (opModeIsActive()) {
             robot.update();

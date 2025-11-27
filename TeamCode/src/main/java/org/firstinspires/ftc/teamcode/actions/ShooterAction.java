@@ -69,18 +69,18 @@ public class ShooterAction extends Action {
         //seqAction.addAction(new SleepAction("stabilize", 500)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
-        seqAction.addAction(this.setIntakePower(0, 500));
+        seqAction.addAction(this.setIntakePower(0, 0));
 
         // 2nd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
+        seqAction.addAction(new SleepAction("stabilize", 100)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
-        seqAction.addAction(this.setIntakePower(0, 500));
+        seqAction.addAction(this.setIntakePower(0, 0));
 
         // 3rd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
+        seqAction.addAction(new SleepAction("stabilize", 100)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 0));
@@ -188,7 +188,7 @@ public class ShooterAction extends Action {
         double bx = slope * this.curLlTy;
         this.curShooterVel = bx + yInt;*/
 
-        double yInt = 832.5; //821.1; //1301; //a value in LSRL equation
+        double yInt = 850; //821.1; //1301; //a value in LSRL equation
         double slope = 0.2163; //0.2727; //b value in LSRL equation
         double bx = slope * this.curLlDist;
         this.curShooterVel = bx + yInt;
