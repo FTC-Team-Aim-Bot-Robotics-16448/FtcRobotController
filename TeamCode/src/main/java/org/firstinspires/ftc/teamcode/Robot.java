@@ -18,6 +18,10 @@ import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
 import org.firstinspires.ftc.teamcode.actions.*;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import com.bylazar.utils.LoopTimer;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+
 public class Robot {
     private IMU imu = null;
     private DcMotor frontRightMotor, backRightMotor, frontLeftMotor, backLeftMotor;
@@ -28,6 +32,7 @@ public class Robot {
     private boolean manualDriveEnabled = false;
     public Vision vision = new Vision();
     public Follower follower;
+    public TelemetryManager panelsTelemetry;
 
     // hardwares for intake and shooter systems
     public DcMotor intakeMotor, turretMotor, optakeMotor;
@@ -129,6 +134,9 @@ public class Robot {
         leftLaunchAngle.setPosition(1);
 
 
+    }
+    public void initPanels() {
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     }
 
     public void init(LinearOpMode opMode, Pose startPos) {

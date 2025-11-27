@@ -43,6 +43,11 @@ public class ShooterAction extends Action {
         this.aprilTagTrackAct.run();
         //this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
         //        this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
+        if (RobotConfig.shooterPanelsEnabled) {
+            this.robot.panelsTelemetry.addData("actual velocity", this.robot.launchMotor.getVelocity());
+            this.robot.panelsTelemetry.addData("set velocity", this.curShooterVel);
+        }
+
         return this.seqAct.run();
     }
 
