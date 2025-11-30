@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.tests;
+package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -19,6 +19,7 @@ public class BlueTeleOp extends LinearOpMode {
     private Button turretLeftButton1 = new Button();
     private Button turretRightButton1 = new Button();
     private Button reverseIntakeButton1 = new Button();
+    private Button stopShootButton1 = new Button();
 
     private Button intakeButton2 = new Button();
     private Button shootButton2 = new Button();
@@ -69,6 +70,7 @@ public class BlueTeleOp extends LinearOpMode {
             this.turretRightButton2.update(this.gamepad2.dpad_right);
             this.reverseIntakeButton1.update(this.gamepad1.dpad_up);
             this.reverseIntakeButton2.update(this.gamepad2.dpad_up);
+            this.stopShootButton1.update(this.gamepad1.x);
 
             // intake
             if (this.intakeButton1.isToggleOn() || this.intakeButton2.isToggleOn()) {
@@ -98,9 +100,16 @@ public class BlueTeleOp extends LinearOpMode {
             if (this.shootButton1.isPressed() || this.shootButton2.isPressed()) {
                 if (this.shootAction == null || this.shootAction.isFinished()) {
                     this.shootAction = this.robot.createShooterAction(this.getApriltagAimingPipeline());
+                    //this.shootAction.enableFixedDisCalMode(1050);
                     this.shootAction.start();
                 }
             }
+            if (this.stopShootButton1.isPressed()) {
+                if (this.shootAction != null && !this.shootAction.isFinished()) {
+                    this.shootAction.stop();
+                }
+            }
+
             if (turretLeftButton1.isPressed() || turretLeftButton2.isPressed()) {
                 this.robot.turnTurret(0.2);
             }
@@ -129,7 +138,10 @@ public class BlueTeleOp extends LinearOpMode {
             if (this.shootAction != null) {
                 telemetry.addData("Shooter:", this.shootAction.toString());
             }
-            //telemetry.addData("Shoot Dist", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
+            telemetry.addData("Shoot Dist", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
+            if (this.shootAction != null) {
+                telemetry.addData("Shoot count", "%d", this.shootAction.shootCount);
+            }
             telemetry.addData("Turret pos:", "%d", this.robot.turretMotor.getCurrentPosition());
             telemetry.addData("Launch Motor:", "%f", this.robot.launchMotor.getVelocity());
             telemetry.addData("X:Y", "%f:%f: %f",

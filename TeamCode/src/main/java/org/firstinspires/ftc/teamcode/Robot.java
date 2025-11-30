@@ -142,6 +142,7 @@ public class Robot {
 
     public void init(LinearOpMode opMode, Pose startPos) {
         this.opMode = opMode;
+        this.initPanels();
         if (!RobotConfig.usePetroPathingManualDrive) {
             this.initImu();
             this.initWheels();
@@ -240,11 +241,11 @@ public class Robot {
             this.turretMotor.setPower(0);
         }
         int pos = this.turretMotor.getCurrentPosition();
-        if ((pos < -200 && turnPower < 0) ||
+        /*if ((pos < -200 && turnPower < 0) ||
                 (pos > 200 && turnPower > 0)) {
             this.turretMotor.setPower(0);
             return;
-        }
+        }*/
         this.turretMotor.setPower(turnPower);
     }
 

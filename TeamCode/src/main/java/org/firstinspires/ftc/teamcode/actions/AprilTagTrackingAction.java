@@ -36,7 +36,7 @@ public class AprilTagTrackingAction extends Action {
         pidParams.gain = 0.02;              // Proportional gain - adjust based on robot response
         pidParams.ki = 0.00;               // Integral gain - helps eliminate steady-state error
         pidParams.accelLimit = 2.0;         // Acceleration limit
-        pidParams.outputLimit = 0.2;        // Max turn power
+        pidParams.outputLimit = 0.5;        // Max turn power
         pidParams.tolerance = 1;          // Within 1 degree is considered on target
         pidParams.deadband = 0.25;           // Don't move if error is less than xxx
         pidParams.circular = false;         // Not circular control (tx is linear)
@@ -66,6 +66,9 @@ public class AprilTagTrackingAction extends Action {
     public double getTy() {
         return this.lastTy;
     }
+    public double getTx() {
+        return this.lastTx;
+    }
     public double getDistance() {
         return this.lastDist;
     }
@@ -93,8 +96,10 @@ public class AprilTagTrackingAction extends Action {
                 // tx > 0 means target is to the right
                 // tx < 0 means target is to the left
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
-                if (detectionRet == null && this.turretTurningEnabled) {
-                    this.robot.turnTurret(0);
+                if (detectionRet == null) {
+                    if (this.turretTurningEnabled) {
+                        this.robot.turnTurret(0);
+                    }
                     return false;
                 }
                 double tx =  detectionRet.tx;
@@ -112,11 +117,11 @@ public class AprilTagTrackingAction extends Action {
                 this.turretPos = this.robot.turretMotor.getCurrentPosition();
 
                 // Aimed at the AprilTag
-               /* if (this.pidController.inPosition()) {
+                if (this.pidController.inPosition()) {
                     this.robot.turretMotor.setPower(0);
                     this.aimed = true;
                     return false;
-                }*/
+                }
 
                 this.robot.turnTurret(turnPower);
                 // We can also turn the robot to aim the AprilTag,

@@ -29,6 +29,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
     private int startPoseId = 1;
     private int goalAprilTagPipeLine = 1;
     private Action autoAction;
+    private String selectedOption;
 
     private Pose startPose;
     private Pose gatePose;
@@ -52,7 +53,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
         gatePose = getPose(new Pose(130, 69.41226215644821, Math.toRadians(90)));
         scorePose = getPose(new Pose(83.3, 92.3, Math.toRadians(45))); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
         start1Pose = getPose(new Pose(100, 83.41649048625793, Math.toRadians(0)));
-        pickup1Pose = getPose(new Pose(128.5, 83.41649048625793, Math.toRadians(0))); // Highest (First Set) of Artifacts from the Spike Mark.
+        pickup1Pose = getPose(new Pose(125.73361522198732, 83.41649048625793, Math.toRadians(0))); // Highest (First Set) of Artifacts from the Spike Mark.
         start2Pose = getPose(new Pose(103.50951374207189, 58.7568710359408, Math.toRadians(0)));
         pickup2Pose = getPose(new Pose(125.73361522198732, 59.36575052854123, Math.toRadians(0))); // Middle (Second Set) of Artifacts from the Spike Mark.
         start3Pose = getPose(new Pose(105.03171247357295, 35.315010570824526, Math.toRadians(0)));
@@ -73,17 +74,15 @@ public class CombinedDecodeAuto extends LinearOpMode {
         telemetry.addLine("Use gamepad to select options");
         telemetry.update();
 
-        String selectedOption = menu.show(gamepad1, telemetry);
+        this.selectedOption = menu.show(gamepad1, telemetry);
         //String selectedOption = "/Red/CloseStart1/1line";
         this.initPos();
         follower.setStartingPose(this.startPose);
         follower.update();
 
-        this.autoAction = genFinalActionWithString(selectedOption);
-
         telemetry.clear();
         telemetry.addData("Selected Option", selectedOption);
-        telemetry.addData("Action", this.autoAction.toString());
+        //telemetry.addData("Action", this.autoAction.toString());
         telemetry.addLine("Press Start to begin");
         telemetry.update();
     }
@@ -112,13 +111,13 @@ public class CombinedDecodeAuto extends LinearOpMode {
                     startPoseId = 3;
                     break;
                 case "3line":
-                    finalAction = createFinalAction(3, true);
+                    finalAction = createFinalAction(3, false);
                     break;
                 case "2line":
-                    finalAction = createFinalAction(2, true);
+                    finalAction = createFinalAction(2, false);
                     break;
                 case "1line":
-                    finalAction = createFinalAction(1, true);
+                    finalAction = createFinalAction(1, false);
                     break;
             }
         }
@@ -156,11 +155,11 @@ public class CombinedDecodeAuto extends LinearOpMode {
         return chain;
     }
 
-    private Action followToScorePoseAct() {
+    private Action followToScorePoseAct(double power) {
         Supplier<PathChain> pathChainGenFunc = () -> {
             return followLineToPose(scorePose);
         };
-        return new PedroPathingAction("followToScorePoseAct", this.follower, pathChainGenFunc, 0.5, true);
+        return new PedroPathingAction("followToScorePoseAct", this.follower, pathChainGenFunc, power, true);
     }
 
     private Action followToOpenGateAct() {
@@ -208,7 +207,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
                 String.format(Locale.US, "intaking%d", line),
                 this.follower, pathChainGenFunc2, true);
 
-        Action followActWithDelay = new ActionWithDelay("intakingDelay", followAct, 2000);
+        Action followActWithDelay = new ActionWithDelay("intakingDelay", followAct, 200);
 
         Action act2, intakeAct;
         if (RobotConfig.shooterEnabled) {
@@ -230,7 +229,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
     Action shootAct() {
         if (RobotConfig.shooterEnabled) {
             ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine);
-            act.enableFixedDisCalMode(1100);
+            act.enableFixedDisCalMode(1130);
             return act;
         } else {
             return new SleepAction("sleep", 10000);
@@ -240,7 +239,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
     Action createFinalAction(int totalLines, boolean openGate) {
         SeqAction seqAct = new SeqAction("final");
         // preload shoot
-        seqAct.addAction(followToScorePoseAct());
+        seqAct.addAction(followToScorePoseAct(0.5));
         seqAct.addAction(shootAct());
 
         // first line intake, open door and shoot
@@ -248,19 +247,19 @@ public class CombinedDecodeAuto extends LinearOpMode {
         if (openGate) {
             seqAct.addAction(followToOpenGateAct());
         }
-        seqAct.addAction(followToScorePoseAct());
+        seqAct.addAction(followToScorePoseAct(0.8));
         seqAct.addAction(shootAct());
 
         if (totalLines >= 2) {
             // second line intake and shoot
             seqAct.addAction(followToIntakeAct(2));
-            seqAct.addAction(followToScorePoseAct());
+            seqAct.addAction(followToScorePoseAct(0.9));
             seqAct.addAction(shootAct());
         }
         if (totalLines >= 3) {
             // third line intake and shoot
             seqAct.addAction(followToIntakeAct(3));
-            seqAct.addAction(followToScorePoseAct());
+            seqAct.addAction(followToScorePoseAct(0.9));
             seqAct.addAction(shootAct());
         }
         return seqAct;
@@ -275,6 +274,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
         waitForStart();
 
         robot.start(goalAprilTagPipeLine);
+        this.autoAction = genFinalActionWithString(selectedOption);
         autoAction.start();
 
         while (opModeIsActive()) {
@@ -288,6 +288,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
             telemetry.addData("x", follower.getPose().getX());
             telemetry.addData("y", follower.getPose().getY());
             telemetry.addData("heading", follower.getPose().getHeading());
+            telemetry.addData("aprilTag", this.robot.aprilTagTrackAct.toString());
             telemetry.update();
         }
 
