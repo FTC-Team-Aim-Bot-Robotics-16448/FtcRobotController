@@ -33,10 +33,10 @@ public class AprilTagTrackingAction extends Action {
         // Initialize PID controller for turn control
         // The tx value from limelight is the error - we want it to be 0
         PIDControlParams pidParams = new PIDControlParams();
-        pidParams.gain = 0.02;              // Proportional gain - adjust based on robot response
+        pidParams.gain = RobotConfig.turretPidGain;              // Proportional gain - adjust based on robot response
         pidParams.ki = 0.00;               // Integral gain - helps eliminate steady-state error
         pidParams.accelLimit = 2.0;         // Acceleration limit
-        pidParams.outputLimit = 0.5;        // Max turn power
+        pidParams.outputLimit = RobotConfig.turretPidMaxPower;        // Max turn power
         pidParams.tolerance = 1;          // Within 1 degree is considered on target
         pidParams.deadband = 0.25;           // Don't move if error is less than xxx
         pidParams.circular = false;         // Not circular control (tx is linear)

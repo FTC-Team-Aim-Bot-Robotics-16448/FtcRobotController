@@ -32,6 +32,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
     private String selectedOption;
 
     private Pose startPose;
+    private Pose startPose1;
     private Pose gatePose;
     private Pose scorePose;
     private Pose start1Pose;
@@ -50,6 +51,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
     private void initPos() {
         startPose = getPose(new Pose(126.1, 121, Math.toRadians(37))); // Start Pose of our robot.
+        startPose1 = getPose(new Pose(88, 136, Math.toRadians(90)));
         gatePose = getPose(new Pose(130, 69.41226215644821, Math.toRadians(90)));
         scorePose = getPose(new Pose(83.3, 92.3, Math.toRadians(45))); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
         start1Pose = getPose(new Pose(100, 83.41649048625793, Math.toRadians(0)));
@@ -69,6 +71,12 @@ public class CombinedDecodeAuto extends LinearOpMode {
         menu.addMenuItem("Red/CloseStart1/3line");
         menu.addMenuItem("Red/CloseStart1/2line");
         menu.addMenuItem("Red/CloseStart1/1line");
+        menu.addMenuItem("Blue/CloseStart2/3line");
+        menu.addMenuItem("Blue/CloseStart2/2line");
+        menu.addMenuItem("Blue/CloseStart2/1line");
+        menu.addMenuItem("Red/CloseStart2/3line");
+        menu.addMenuItem("Red/CloseStart2/2line");
+        menu.addMenuItem("Red/CloseStart2/1line");
 
         telemetry.addLine("Menu Initialized");
         telemetry.addLine("Use gamepad to select options");
@@ -77,8 +85,6 @@ public class CombinedDecodeAuto extends LinearOpMode {
         this.selectedOption = menu.show(gamepad1, telemetry);
         //String selectedOption = "/Red/CloseStart1/1line";
         this.initPos();
-        follower.setStartingPose(this.startPose);
-        follower.update();
 
         telemetry.clear();
         telemetry.addData("Selected Option", selectedOption);
@@ -106,6 +112,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
                     break;
                 case "CloseStart2":
                     startPoseId = 2;
+                    this.startPose = this.startPose1;
                     break;
                 case "FarStart":
                     startPoseId = 3;
@@ -228,8 +235,8 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
     Action shootAct() {
         if (RobotConfig.shooterEnabled) {
-            ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine);
-            act.enableFixedDisCalMode(1130);
+            ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine, false);
+            act.enableFixedDisCalMode(1180);
             return act;
         } else {
             return new SleepAction("sleep", 10000);
@@ -237,6 +244,9 @@ public class CombinedDecodeAuto extends LinearOpMode {
     }
 
     Action createFinalAction(int totalLines, boolean openGate) {
+        follower.setStartingPose(this.startPose);
+        follower.update();
+
         SeqAction seqAct = new SeqAction("final");
         // preload shoot
         seqAct.addAction(followToScorePoseAct(0.5));
@@ -275,6 +285,8 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
         robot.start(goalAprilTagPipeLine);
         this.autoAction = genFinalActionWithString(selectedOption);
+
+        this.robot.launchMotor.setVelocity(RobotConfig.shooterMotorVelocity);
         autoAction.start();
 
         while (opModeIsActive()) {
@@ -293,5 +305,6 @@ public class CombinedDecodeAuto extends LinearOpMode {
         }
 
         autoAction.stop();
+        this.robot.launchMotor.setPower(0);
     }
 }

@@ -22,11 +22,12 @@ public class RobotConfig {
     public static boolean usePetroPathingManualDrive = true;
 
     // Shooter
-    public static double shooterMotorVelocity = 1100;
+    public static double shooterMotorVelocity = 1050;
     public static double shooterMotorVelocityPer = 0.98;
     public static double shooterMotorDecompressionPer = 0.9;
     public static boolean shooterPanelsEnabled = true;
     public static boolean shooterEnabled = true;
+    public static boolean shooterTraining = false;
 
     // IMU config
     public static String imuName = "imu";
@@ -53,6 +54,9 @@ public class RobotConfig {
     public static double cameraHorizontalFOV = 54.5; // degrees
     public static double cameraVerticalFOV = 42.0; // degrees
 
+    // april tag tracking pid
+    public static double turretPidGain = 0.003;
+    public static double turretPidMaxPower = 0.025;
     // Ball detection filters
     public static double ballDiameter = 127; // mm, actual ball diameter
     public static double ballTaTolerance = 0.3; // tolerance ratio for ta validation (±30%)

@@ -231,8 +231,8 @@ public class Robot {
         return new IntakeAction(this, reverse);
     }
 
-    public ShooterAction createShooterAction(int llPipelineForAiming) {
-        return new ShooterAction(this,  llPipelineForAiming);
+    public ShooterAction createShooterAction(int llPipelineForAiming, boolean shouldStopLaunchMotor) {
+        return new ShooterAction(this,  llPipelineForAiming, shouldStopLaunchMotor);
     }
 
     public void turnTurret(double turnPower) {
