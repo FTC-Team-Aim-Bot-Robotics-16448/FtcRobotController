@@ -12,7 +12,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
+import org.firstinspires.ftc.teamcode.aim.action.CommonAction;
 import org.firstinspires.ftc.teamcode.aim.action.EitherOneAction;
+import org.firstinspires.ftc.teamcode.aim.action.ParallelAction;
 import org.firstinspires.ftc.teamcode.aim.action.PedroPathingAction;
 import org.firstinspires.ftc.teamcode.aim.action.SeqAction;
 import org.firstinspires.ftc.teamcode.aim.action.SleepAction;
@@ -56,7 +58,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
         scorePose = getPose(new Pose(83.3, 92.3, Math.toRadians(45))); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
         start1Pose = getPose(new Pose(100, 83.41649048625793, Math.toRadians(0)));
         pickup1Pose = getPose(new Pose(125.73361522198732, 83.41649048625793, Math.toRadians(0))); // Highest (First Set) of Artifacts from the Spike Mark.
-        start2Pose = getPose(new Pose(103.50951374207189, 58.7568710359408, Math.toRadians(0)));
+        start2Pose = getPose(new Pose(100, 58.7568710359408, Math.toRadians(0)));
         pickup2Pose = getPose(new Pose(125.73361522198732, 59.36575052854123, Math.toRadians(0))); // Middle (Second Set) of Artifacts from the Spike Mark.
         start3Pose = getPose(new Pose(105.03171247357295, 35.315010570824526, Math.toRadians(0)));
         pickup3Pose = getPose(new Pose(125.4291754756871, 35.315010570824526, Math.toRadians(0))); // Lowest (Third Set) of Artifacts from the Spike Mark.
@@ -84,7 +86,6 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
         this.selectedOption = menu.show(gamepad1, telemetry);
         //String selectedOption = "/Red/CloseStart1/1line";
-        this.initPos();
 
         telemetry.clear();
         telemetry.addData("Selected Option", selectedOption);
@@ -166,7 +167,18 @@ public class CombinedDecodeAuto extends LinearOpMode {
         Supplier<PathChain> pathChainGenFunc = () -> {
             return followLineToPose(scorePose);
         };
-        return new PedroPathingAction("followToScorePoseAct", this.follower, pathChainGenFunc, power, true);
+        Action act1 = new PedroPathingAction("followToScorePoseAct", this.follower, pathChainGenFunc, power, true);
+
+        Supplier<Boolean> step1Func = () -> {
+            this.robot.launchMotor.setPower(RobotConfig.autoShooterVel);
+            return true;
+        };
+        Action act2 = new CommonAction("setShootPower", step1Func);
+
+        ParallelAction paraAct = new ParallelAction("followToScorePoseAct");
+        paraAct.addAction(act2);
+        paraAct.addAction(act1);
+        return paraAct;
     }
 
     private Action followToOpenGateAct() {
@@ -235,7 +247,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
     Action shootAct() {
         if (RobotConfig.shooterEnabled) {
-            ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine, false);
+            ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine, true);
             act.enableFixedDisCalMode(1180);
             return act;
         } else {
@@ -244,6 +256,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
     }
 
     Action createFinalAction(int totalLines, boolean openGate) {
+        this.initPos();
         follower.setStartingPose(this.startPose);
         follower.update();
 
@@ -286,7 +299,8 @@ public class CombinedDecodeAuto extends LinearOpMode {
         robot.start(goalAprilTagPipeLine);
         this.autoAction = genFinalActionWithString(selectedOption);
 
-        this.robot.launchMotor.setVelocity(RobotConfig.shooterMotorVelocity);
+
+        //this.robot.launchMotor.setVelocity(RobotConfig.autoShooterVel);
         autoAction.start();
 
         while (opModeIsActive()) {

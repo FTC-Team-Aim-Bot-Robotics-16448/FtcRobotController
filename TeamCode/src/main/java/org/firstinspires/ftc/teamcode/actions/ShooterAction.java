@@ -32,9 +32,13 @@ public class ShooterAction extends Action {
     private boolean shouldStopLaunchMotor = true;
 
     private double curLlTy = 0;
-    public double curShooterVel = 0;
     public double curLlDist = 0;
     public int shootCount = 0;
+    public int shootCountBySensor = 0;
+
+    public double setShooterVel = 0;
+    private double preShooterVel = 0;
+    private double curShooterVel = 0;
 
     // Distance sensor caching
     private double cachedDisSensorValue = 0;
@@ -53,7 +57,7 @@ public class ShooterAction extends Action {
         if (RobotConfig.shooterPanelsEnabled) {
             try {
                 this.log = new Logging("shooter");
-                this.log.setFieldsLine("velocity,distance");
+                this.log.setFieldsLine("velocity,pre-vel,distance");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -70,30 +74,37 @@ public class ShooterAction extends Action {
 
     public void enableFixedDisCalMode(double vel) {
         this.disCalMode = DisCalMode.FIXED;
-        this.curShooterVel = vel;
+        this.setShooterVel = vel;
     }
 
     private double readDisSensor() {
-        long currentTime = System.currentTimeMillis();
+        /*long currentTime = System.currentTimeMillis();
         if (currentTime - lastDisSensorReadTime >= DIS_SENSOR_READ_TIMEOUT_MS) {
             cachedDisSensorValue = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
             lastDisSensorReadTime = currentTime;
-        }
+        }*/
+        cachedDisSensorValue = this.robot.shootDistSensor.getDistance(DistanceUnit.CM);
         return cachedDisSensorValue;
     }
 
     @Override
     public boolean run() {
         this.aprilTagTrackAct.enableTurretTurning(true);
+        this.curShooterVel = this.robot.launchMotor.getVelocity();
+        this.readDisSensor();
+
+        boolean ret = this.seqAct.run();
+
         if (RobotConfig.shooterPanelsEnabled) {
             try {
-                log.write("%f,%f", this.robot.launchMotor.getVelocity(), readDisSensor());
+                log.write("%f,%f,%f", curShooterVel, this.preShooterVel, this.cachedDisSensorValue);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        return this.seqAct.run();
+        this.preShooterVel = this.curShooterVel;
+        return ret;
     }
 
     @Override
@@ -121,7 +132,9 @@ public class ShooterAction extends Action {
             seqAction.addAction(this.waitingForAiming());
             seqAction.addAction(this.shootStartAction());
         } else if (this.disCalMode == DisCalMode.FIXED) {
-            seqAction.addAction(this.shootStartAndAimingAction());
+            //seqAction.addAction(this.shootStartAndAimingAction());
+            seqAction.addAction(this.waitingForAiming());
+            //seqAction.addAction(this.shootStartAction());
         }
 
         // 1st shoot
@@ -129,20 +142,20 @@ public class ShooterAction extends Action {
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForBallInHood(true));
         seqAction.addAction(this.setIntakePower(0, 0));
-        seqAction.addAction(this.waitingForBallInHood(false));
         //seqAction.addAction(new SleepAction("stabilize", 1000));
+        seqAction.addAction(this.waitingForBallInHood(false));
 
         // 2nd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(-1.0, 0));
+        seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForBallInHood(true));
         seqAction.addAction(this.setIntakePower(0, 0));
+        //seqAction.addAction(new SleepAction("stabilize", 1000));
         seqAction.addAction(this.waitingForBallInHood(false));
-       // seqAction.addAction(new SleepAction("stabilize", 1000));
 
         // 3rd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(this.setIntakePower(-1.0, 0));
+        seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForBallInHood(true));
         seqAction.addAction(this.setIntakePower(0, 0));
         seqAction.addAction(this.waitingForBallInHood(false));
@@ -161,14 +174,27 @@ public class ShooterAction extends Action {
 
     private Action waitingForBallInHood(boolean inHood) {
         Supplier<Boolean> step1Func = () -> {
-            double ballDistance = this.readDisSensor();
             if (inHood) {
-                if (ballDistance <= 13) {
-                    this.shootCount++;
-                    return true;
+                boolean ret = false;
+                for (int i = 0; i < 1; i++) {
+                    double ballDistance = this.cachedDisSensorValue;
+                    if (ballDistance <= 13) {
+                        this.shootCount++;
+                        this.shootCountBySensor++;
+                        ret = true;
+                        break;
+                    }
+                    if (this.curShooterVel < this.preShooterVel &&
+                            (this.preShooterVel - this.curShooterVel) / this.preShooterVel >= RobotConfig.shooterMotorCompressionPer) {
+                        ret = true;
+                        this.shootCount++;
+                        break;
+                    }
                 }
+                return ret;
             } else {
-                if (ballDistance >= 14) {
+                double ballDistance = this.cachedDisSensorValue;
+                if (ballDistance >= 17) {
                     return true;
                 }
             }
@@ -180,20 +206,11 @@ public class ShooterAction extends Action {
 
     private Action waitingForLaunchMotorSpeed() {
         Supplier<Boolean> runFunc = () -> {
-            return this.robot.launchMotor.getVelocity() >= curShooterVel - 25 &&
-                   this.robot.launchMotor.getVelocity() <= curShooterVel + 25;
+            return this.robot.launchMotor.getVelocity() >= setShooterVel - 25 &&
+                   this.robot.launchMotor.getVelocity() <= setShooterVel + 25;
         };
         Action act = new CommonAction("waitingLaunchMotor", runFunc);
         return new EitherOneAction("waitingLaunchMotor", act, new SleepAction("timeout", 2000));
-    }
-
-    private Action waitingForLaunchMotorDecompression() {
-        Supplier<Boolean> runFunc = () -> {
-            return this.robot.launchMotor.getVelocity() <
-                    (curShooterVel * RobotConfig.shooterMotorDecompressionPer) ;
-        };
-        Action act =  new CommonAction("waitingLaunchMotor",runFunc);
-        return new EitherOneAction("waitingCompression", act, new SleepAction("timeout", 2000));
     }
 
     private double getLaunchVelocity() {
@@ -201,18 +218,18 @@ public class ShooterAction extends Action {
         this.curLlDist = Math.abs(this.aprilTagTrackAct.getDistance());
 
         if (this.disCalMode == DisCalMode.FIXED) {
-            return this.curShooterVel;
+            return this.setShooterVel;
         }
-        this.curShooterVel = RobotConfig.shooterMotorVelocity;
+        this.setShooterVel = RobotConfig.shooterMotorVelocity;
 
         if (!RobotConfig.shooterTraining) {
             double yInt = 832.5;
             double slope = 0.2163;
             double bx = slope * this.curLlDist;
-            this.curShooterVel = bx + yInt;
+            this.setShooterVel = bx + yInt;
         }
 
-        return this.curShooterVel;
+        return this.setShooterVel;
     }
 
     private Action shootStartAction() {
@@ -232,8 +249,16 @@ public class ShooterAction extends Action {
         paraAct.addAction(this.shootStartAction());
         paraAct.addAction(this.waitingForAiming());
         return paraAct;
+    }
+
+    private Action startTransferAndWaitForBallInHood() {
+        ParallelAction paraAct = new ParallelAction("TransferAndBallin");
+        paraAct.addAction(this.waitingForBallInHood(true));
+        paraAct.addAction(this.setIntakePower(-0.8, 0));
+        return paraAct;
 
     }
+
     private Action shootEndAction() {
         Supplier<Boolean> step1Func = () -> {
             this.robot.intakeMotor.setPower(0);

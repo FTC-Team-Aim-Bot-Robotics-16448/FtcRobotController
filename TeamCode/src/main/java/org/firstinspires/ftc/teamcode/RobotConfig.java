@@ -23,8 +23,9 @@ public class RobotConfig {
 
     // Shooter
     public static double shooterMotorVelocity = 1050;
+    public static double autoShooterVel = 1070;
     public static double shooterMotorVelocityPer = 0.98;
-    public static double shooterMotorDecompressionPer = 0.9;
+    public static double shooterMotorCompressionPer = 0.1;
     public static boolean shooterPanelsEnabled = true;
     public static boolean shooterEnabled = true;
     public static boolean shooterTraining = false;

@@ -90,8 +90,10 @@ public class BlueTeleOp extends LinearOpMode {
                 }
             }
             if (this.intakeButton1.isToggleOff() || this.intakeButton2.isToggleOff()) {
-                this.intakeAction.stop();
-                this.intakeAction = null;
+                if (this.intakeAction != null) {
+                    this.intakeAction.stop();
+                    this.intakeAction = null;
+                }
             }
 
             // reverse intake
@@ -102,8 +104,10 @@ public class BlueTeleOp extends LinearOpMode {
                 }
             }
             if (this.reverseIntakeButton1.isToggleOff() || this.reverseIntakeButton2.isToggleOff()) {
-                this.intakeAction.stop();
-                this.intakeAction = null;
+                if (this.intakeAction != null) {
+                    this.intakeAction.stop();
+                    this.intakeAction = null;
+                }
             }
 
             // start shooter motor
@@ -126,8 +130,8 @@ public class BlueTeleOp extends LinearOpMode {
                 if (this.shootAction != null && !this.shootAction.isFinished()) {
                     this.shootAction.stop();
                 }
-                this.shootButton1.reset();
-                this.shootButton2.reset();
+                this.stopShootButton1.reset();
+                this.stopShootButton1.reset();
             }
 
             // turn turret to left
@@ -161,10 +165,10 @@ public class BlueTeleOp extends LinearOpMode {
 
             if (this.shootAction != null) {
                 telemetry.addData("Shooter Ty:", "%f", this.shootAction.aprilTagTrackAct.getTy());
-                telemetry.addData("Shooter count", "%d", this.shootAction.shootCount);
-                telemetry.addData("Shooter Vel", "%f", this.shootAction.curShooterVel);
-                telemetry.addData("Shooter Dis", "%f", this.shootAction.curLlDist);
-                //telemetry.addData("Shooter:", this.shootAction.toString());
+                telemetry.addData("Shooter Dis to goal", "%f", this.shootAction.curLlDist);
+                telemetry.addData("Shooter count", "%d:%d", this.shootAction.shootCount, this.shootAction.shootCountBySensor);
+                telemetry.addData("Shooter Set Vel", "%f", this.shootAction.setShooterVel);
+                 //telemetry.addData("Shooter:", this.shootAction.toString());
             }
 
             telemetry.addData("Ball Dist", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
