@@ -167,7 +167,6 @@ public class Robot {
             this.aprilTagTrackAct = this.createAprilTagTrackingAction(llPipeline);
             this.aprilTagTrackAct.start();
         }
-    }
 
     public void handleRobotMove() {
         this.botRotateButton.update(this.opMode.gamepad1.x);
