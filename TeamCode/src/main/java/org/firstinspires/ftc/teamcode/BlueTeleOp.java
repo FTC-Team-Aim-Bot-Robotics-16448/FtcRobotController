@@ -136,7 +136,7 @@ public class BlueTeleOp extends LinearOpMode {
 
             // turn turret to left
             if (turretLeftButton1.isPressed() || turretLeftButton2.isPressed()) {
-                this.robot.turnTurret(0.2);
+                this.robot.turnTurret(0.5);
             }
 
             // stop turret turning to left
@@ -147,7 +147,7 @@ public class BlueTeleOp extends LinearOpMode {
 
             // turn turret to right
             if (turretRightButton1.isPressed() || turretRightButton2.isPressed()) {
-                this.robot.turnTurret(-0.2);
+                this.robot.turnTurret(-0.5);
             }
 
             // stop turret turning to right
@@ -164,13 +164,19 @@ public class BlueTeleOp extends LinearOpMode {
             this.robot.turretSafeCheckAndStop();
 
             if (this.shootAction != null) {
-                telemetry.addData("Shooter Ty:", "%f", this.shootAction.aprilTagTrackAct.getTy());
+                telemetry.addData("Shooter Ty:Tx", "%f:%f",
+                        this.shootAction.aprilTagTrackAct.getTy(), this.shootAction.aprilTagTrackAct.getTx());
                 telemetry.addData("Shooter Dis to goal", "%f", this.shootAction.curLlDist);
                 telemetry.addData("Shooter count", "%d:%d", this.shootAction.shootCount, this.shootAction.shootCountBySensor);
                 telemetry.addData("Shooter Set Vel", "%f", this.shootAction.setShooterVel);
                  //telemetry.addData("Shooter:", this.shootAction.toString());
             }
 
+            telemetry.addData("In far zone", "%b", this.robot.isInFarZone());
+            if (this.robot.aprilTagTrackAct != null) {
+                telemetry.addData("Shooter Dis to goal", "%f", this.robot.aprilTagTrackAct.getDistance());
+                telemetry.addData("April Tag Id", "%d", this.robot.aprilTagTrackAct.getAprilTagId());
+            }
             telemetry.addData("Ball Dist", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
             telemetry.addData("Turret pos:", "%d", this.robot.turretMotor.getCurrentPosition());
             telemetry.addData("Launch Motor:", "%f", this.robot.launchMotor.getVelocity());

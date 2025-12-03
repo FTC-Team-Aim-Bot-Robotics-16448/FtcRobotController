@@ -21,8 +21,10 @@ public class AprilTagTrackingAction extends Action {
     private double lastPower = 0;
     private double lastDist = 0;
     private double turretPos = 0;
+    private int aprilTagId = 0;
     private boolean turretTurningEnabled = false;
     private boolean aimed = false;
+    private double setTargetTx = 0;
 
     public AprilTagTrackingAction(Robot robot, int limelightPipeLine, double airTagHeight) {
         super("AprilTagTracking");
@@ -40,7 +42,7 @@ public class AprilTagTrackingAction extends Action {
         pidParams.tolerance = 1;          // Within 1 degree is considered on target
         pidParams.deadband = 0.25;           // Don't move if error is less than xxx
         pidParams.circular = false;         // Not circular control (tx is linear)
-        pidParams.minNonZeroOutput = 0;  // Minimum power to overcome friction
+        pidParams.minNonZeroOutput = RobotConfig.turretMotorMinPower;  // Minimum power to overcome friction
 
         this.pidController = new PIDControl(pidParams);
         this.pidController.reset(0.0); // Target is 0 (centered on AprilTag)
@@ -70,10 +72,26 @@ public class AprilTagTrackingAction extends Action {
         return this.lastTx;
     }
     public double getDistance() {
-        return this.lastDist;
+        return Math.abs(this.lastDist);
     }
+    public int getAprilTagId() {
+        return this.aprilTagId;
+    }
+
     public void enableTurretTurning(boolean enabled) {
         this.turretTurningEnabled = enabled;
+        double txVal = 0;
+        if (this.robot.isInFarZone()) {
+            if (this.aprilTagId == 24) {
+                txVal = -2;
+            } else {
+                txVal = 2;
+            }
+        }
+        if (this.setTargetTx != txVal) {
+            this.setTargetTx = txVal;
+            this.pidController.reset(this.setTargetTx);
+        }
     }
 
     @Override
@@ -106,6 +124,7 @@ public class AprilTagTrackingAction extends Action {
                 this.lastTx = tx;
                 this.lastTy = detectionRet.ty;
                 this.lastDist = detectionRet.distance;
+                this.aprilTagId = detectionRet.airTagID;
 
                 if (!this.turretTurningEnabled) {
                     this.robot.turretMotor.setPower(0);
@@ -157,6 +176,7 @@ public class AprilTagTrackingAction extends Action {
     }
 
     public boolean aprilTagAimed() {
-        return Math.abs(this.lastTx) <= 1;
+        return Math.abs(this.lastTx - this.setTargetTx) <= 1;
     }
+
 }

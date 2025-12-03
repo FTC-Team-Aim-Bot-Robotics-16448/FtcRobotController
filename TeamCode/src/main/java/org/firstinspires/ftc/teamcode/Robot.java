@@ -260,6 +260,13 @@ public class Robot {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
+    public boolean isInFarZone() {
+        if (this.aprilTagTrackAct == null) {
+            return false;
+        }
+        return this.aprilTagTrackAct.getDistance() > 2500;
+    }
+
     public void update() {
         follower.update();
         if (manualDriveEnabled) {

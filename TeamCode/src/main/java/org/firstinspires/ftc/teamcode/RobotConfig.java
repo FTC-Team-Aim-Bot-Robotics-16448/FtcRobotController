@@ -30,6 +30,7 @@ public class RobotConfig {
     public static boolean shooterEnabled = true;
     public static boolean shooterTraining = false;
 
+
     // IMU config
     public static String imuName = "imu";
     public static RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
@@ -56,8 +57,10 @@ public class RobotConfig {
     public static double cameraVerticalFOV = 42.0; // degrees
 
     // april tag tracking pid
-    public static double turretPidGain = 0.003;
-    public static double turretPidMaxPower = 0.025;
+    public static double turretPidGain = 0.008;
+    public static double turretPidMaxPower = 0.8;
+    public static double turretMotorMinPower = 0.065;
+
     // Ball detection filters
     public static double ballDiameter = 127; // mm, actual ball diameter
     public static double ballTaTolerance = 0.3; // tolerance ratio for ta validation (±30%)

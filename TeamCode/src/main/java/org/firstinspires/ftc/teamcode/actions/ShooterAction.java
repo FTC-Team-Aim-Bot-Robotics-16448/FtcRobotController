@@ -133,7 +133,7 @@ public class ShooterAction extends Action {
             seqAction.addAction(this.shootStartAction());
         } else if (this.disCalMode == DisCalMode.FIXED) {
             //seqAction.addAction(this.shootStartAndAimingAction());
-            seqAction.addAction(this.waitingForAiming());
+           // seqAction.addAction(this.waitingForAiming());
             //seqAction.addAction(this.shootStartAction());
         }
 
@@ -227,6 +227,9 @@ public class ShooterAction extends Action {
             double slope = 0.2163;
             double bx = slope * this.curLlDist;
             this.setShooterVel = bx + yInt;
+            if (this.robot.isInFarZone()) {
+                this.setShooterVel += 100;
+            }
         }
 
         return this.setShooterVel;
@@ -244,7 +247,7 @@ public class ShooterAction extends Action {
         return  new ActionWithDelay("ShootStep1", step1Act, 1000);
     }
 
-    private Action shootStartAndAimingAction() {
+    /*private Action shootStartAndAimingAction() {
         ParallelAction paraAct = new ParallelAction("ShootAndAiming");
         paraAct.addAction(this.shootStartAction());
         paraAct.addAction(this.waitingForAiming());
@@ -256,8 +259,7 @@ public class ShooterAction extends Action {
         paraAct.addAction(this.waitingForBallInHood(true));
         paraAct.addAction(this.setIntakePower(-0.8, 0));
         return paraAct;
-
-    }
+    }*/
 
     private Action shootEndAction() {
         Supplier<Boolean> step1Func = () -> {

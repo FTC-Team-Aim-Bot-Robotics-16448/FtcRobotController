@@ -32,11 +32,14 @@ public class CombinedDecodeAuto extends LinearOpMode {
     private int goalAprilTagPipeLine = 1;
     private Action autoAction;
     private String selectedOption;
+    private String intakeLines;
 
     private Pose startPose;
     private Pose startPose1;
+    private Pose startPose2;
     private Pose gatePose;
     private Pose scorePose;
+    private Pose scorePose1;
     private Pose start1Pose;
     private Pose pickup1Pose;
     private Pose start2Pose;
@@ -54,8 +57,12 @@ public class CombinedDecodeAuto extends LinearOpMode {
     private void initPos() {
         startPose = getPose(new Pose(126.1, 121, Math.toRadians(37))); // Start Pose of our robot.
         startPose1 = getPose(new Pose(88, 136, Math.toRadians(90)));
+        startPose2 = getPose(new Pose(88, 136, Math.toRadians(90)));
+
         gatePose = getPose(new Pose(130, 69.41226215644821, Math.toRadians(90)));
         scorePose = getPose(new Pose(83.3, 92.3, Math.toRadians(45))); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+        scorePose1 = getPose(new Pose(83.3, 92.3, Math.toRadians(45)));
+
         start1Pose = getPose(new Pose(100, 83.41649048625793, Math.toRadians(0)));
         pickup1Pose = getPose(new Pose(125.73361522198732, 83.41649048625793, Math.toRadians(0))); // Highest (First Set) of Artifacts from the Spike Mark.
         start2Pose = getPose(new Pose(100, 58.7568710359408, Math.toRadians(0)));
@@ -73,6 +80,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
         menu.addMenuItem("Red/CloseStart1/3line");
         menu.addMenuItem("Red/CloseStart1/2line");
         menu.addMenuItem("Red/CloseStart1/1line");
+
         menu.addMenuItem("Blue/CloseStart2/3line");
         menu.addMenuItem("Blue/CloseStart2/2line");
         menu.addMenuItem("Blue/CloseStart2/1line");
@@ -80,12 +88,20 @@ public class CombinedDecodeAuto extends LinearOpMode {
         menu.addMenuItem("Red/CloseStart2/2line");
         menu.addMenuItem("Red/CloseStart2/1line");
 
+        menu.addMenuItem("Blue/CloseStart3/3line");
+        menu.addMenuItem("Blue/CloseStart3/2line");
+        menu.addMenuItem("Blue/CloseStart3/1line");
+        menu.addMenuItem("Red/CloseStart3/3line");
+        menu.addMenuItem("Red/CloseStart3/2line");
+        menu.addMenuItem("Red/CloseStart3/1line");
+
         telemetry.addLine("Menu Initialized");
         telemetry.addLine("Use gamepad to select options");
         telemetry.update();
 
         this.selectedOption = menu.show(gamepad1, telemetry);
         //String selectedOption = "/Red/CloseStart1/1line";
+        this.parseMenuOptions(this.selectedOption);
 
         telemetry.clear();
         telemetry.addData("Selected Option", selectedOption);
@@ -94,8 +110,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
         telemetry.update();
     }
 
-    Action genFinalActionWithString(String r) {
-        Action finalAction = null;
+    void parseMenuOptions(String r) {
         String[] parts = r.split("/");
 
         for (String item : parts) {
@@ -115,22 +130,34 @@ public class CombinedDecodeAuto extends LinearOpMode {
                     startPoseId = 2;
                     this.startPose = this.startPose1;
                     break;
+                case "CloseStart3":
+                    startPoseId = 3;
+                    this.startPose = this.startPose2;
+                    this.scorePose = this.scorePose1;
+                    break;
                 case "FarStart":
                     startPoseId = 3;
                     break;
                 case "3line":
-                    finalAction = createFinalAction(3, false);
-                    break;
+                    this.intakeLines = "123";
+                    if (this.startPoseId == 3) {
+                        this.intakeLines = "321";
+                    }
+                   break;
                 case "2line":
-                    finalAction = createFinalAction(2, false);
+                    this.intakeLines = "12";
+                    if (this.startPoseId == 3) {
+                        this.intakeLines = "32";
+                    }
                     break;
                 case "1line":
-                    finalAction = createFinalAction(1, false);
+                    this.intakeLines = "1";
+                    if (this.startPoseId == 3) {
+                        this.intakeLines = "3";
+                    }
                     break;
             }
         }
-
-        return finalAction;
     }
 
     private PathChain followLineToPose(Pose target) {
@@ -255,7 +282,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
         }
     }
 
-    Action createFinalAction(int totalLines, boolean openGate) {
+    Action createFinalAction(String lines, boolean openGate) {
         this.initPos();
         follower.setStartingPose(this.startPose);
         follower.update();
@@ -265,6 +292,18 @@ public class CombinedDecodeAuto extends LinearOpMode {
         seqAct.addAction(followToScorePoseAct(0.5));
         seqAct.addAction(shootAct());
 
+        // lines format is like "123", "12"
+        for (int i = 0; i < lines.length(); i++) {
+            char c = lines.charAt(i);
+            int line = c - '0';
+            seqAct.addAction(followToIntakeAct(line));
+            if (line == 1 && openGate) {
+                seqAct.addAction(followToOpenGateAct());
+            }
+            seqAct.addAction(followToScorePoseAct(0.9));
+            seqAct.addAction(shootAct());
+        }
+/*
         // first line intake, open door and shoot
         seqAct.addAction(followToIntakeAct(1));
         if (openGate) {
@@ -285,6 +324,8 @@ public class CombinedDecodeAuto extends LinearOpMode {
             seqAct.addAction(followToScorePoseAct(0.9));
             seqAct.addAction(shootAct());
         }
+
+ */
         return seqAct;
     }
 
@@ -297,9 +338,8 @@ public class CombinedDecodeAuto extends LinearOpMode {
         waitForStart();
 
         robot.start(goalAprilTagPipeLine);
-        this.autoAction = genFinalActionWithString(selectedOption);
 
-
+        this.autoAction = createFinalAction(this.intakeLines, false);
         //this.robot.launchMotor.setVelocity(RobotConfig.autoShooterVel);
         autoAction.start();
 
