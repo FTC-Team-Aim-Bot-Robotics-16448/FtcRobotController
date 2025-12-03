@@ -3,11 +3,15 @@ package org.firstinspires.ftc.teamcode.aim.action;
 public class EitherOneAction extends Action {
     private Action action1;
     private Action action2;
+    private boolean finished1;
+    private boolean finished2;
 
     public EitherOneAction(String name, Action action1, Action action2) {
         super(name);
         this.action1 = action1;
         this.action2 = action2;
+        this.finished1 = false;
+        this.finished2 = false;
     }
 
     @Override
@@ -15,10 +19,12 @@ public class EitherOneAction extends Action {
         if (action1 == null || action2 == null) {
             return true;
         }
-
-        boolean finished1 = action1.run();
-        boolean finished2 = action2.run();
-
+        if (!finished1) {
+            finished1 = action1.run();
+        }
+        if (!finished2) {
+            finished2 = action2.run();
+        }
         // Return true if either action is finished
         return finished1 || finished2;
     }

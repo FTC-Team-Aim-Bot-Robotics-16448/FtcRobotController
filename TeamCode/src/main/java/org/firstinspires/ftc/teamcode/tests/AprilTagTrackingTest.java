@@ -26,6 +26,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
         }
         this.trackingAction = robot.createAprilTagTrackingAction(llPipeline);
         this.trackingAction.start();
+        this.trackingAction.enableTurretTurning(true);
         telemetry.addData("Status", "AprilTag tracking started");
     }
 
@@ -61,7 +62,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
 
         waitForStart();
 
-        robot.start();
+        robot.start(-1);
 
         while (opModeIsActive()) {
             robot.update();
@@ -70,7 +71,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
             // Start tracking when B button is pressed
             this.startButton.update(this.gamepad1.b);
             if (this.startButton.isPressed()) {
-                startAprilTagTracking(0);
+                startAprilTagTracking(1);
             }
 
             // Stop tracking when X button is pressed
@@ -84,7 +85,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
                     robot.follower.getPose().getX(),
                     robot.follower.getPose().getY(),
                     Math.toDegrees(robot.follower.getHeading()));
-
+            telemetry.addData("Turret pos", this.robot.turretMotor.getCurrentPosition());
             telemetry.update();
         }
     }

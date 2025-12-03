@@ -6,7 +6,9 @@ public class ActionWithDelay extends Action{
     public ActionWithDelay(String name, Action actualAction, long millSecs) {
         super(name);
         this.seqAct.addAction(actualAction);
-        this.seqAct.addAction(new SleepAction("delay", millSecs));
+        //if (millSecs > 0) {
+            this.seqAct.addAction(new SleepAction("delay", millSecs));
+        //}
     }
 
     @Override

@@ -22,10 +22,14 @@ public class RobotConfig {
     public static boolean usePetroPathingManualDrive = true;
 
     // Shooter
-    public static double shooterMotorVelocity = 1100;
+    public static double shooterMotorVelocity = 1050;
+    public static double autoShooterVel = 1070;
     public static double shooterMotorVelocityPer = 0.98;
-    public static double shooterMotorDecompressionPer = 0.9;
+
+    public static double shooterMotorCompressionPer = 0.1;
+    public static boolean shooterPanelsEnabled = true;
     public static boolean shooterEnabled = true;
+    public static boolean shooterTraining = false;
 
     // IMU config
     public static String imuName = "imu";
@@ -51,6 +55,11 @@ public class RobotConfig {
     // Limelight 3A lens parameters
     public static double cameraHorizontalFOV = 54.5; // degrees
     public static double cameraVerticalFOV = 42.0; // degrees
+
+    // april tag tracking pid
+    public static double turretPidGain = 0.008;
+    public static double turretPidMaxPower = 0.8;
+    public static double turretMotorMinPower = 0.065;
 
     // Ball detection filters
     public static double ballDiameter = 127; // mm, actual ball diameter

@@ -116,7 +116,7 @@ public class RedAuto extends LinearOpMode {
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction = this.robot.createShooterAction(1, true);
                     this.shootAction.start();
                     setPathState(11);
                 }
@@ -158,7 +158,7 @@ public class RedAuto extends LinearOpMode {
                 break;
             case 17:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction = this.robot.createShooterAction(1, true);
                     this.shootAction.start();
                     setPathState(18);
                 }
@@ -191,7 +191,7 @@ public class RedAuto extends LinearOpMode {
                 }
             case 23:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction = this.robot.createShooterAction(1, true);
                     this.shootAction.start();
                     setPathState(24);
                 }
@@ -224,7 +224,7 @@ public class RedAuto extends LinearOpMode {
                 }
             case 33:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction = this.robot.createShooterAction(1, true);
                     this.shootAction.start();
                     setPathState(34);
                 }
@@ -306,7 +306,7 @@ public class RedAuto extends LinearOpMode {
 
         opmodeTimer.resetTimer();
         setPathState(0);
-        robot.start();
+        robot.start(-1);
 
         while (opModeIsActive()) {
             robot.update();
