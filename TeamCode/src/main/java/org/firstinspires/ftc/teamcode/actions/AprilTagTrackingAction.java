@@ -92,6 +92,7 @@ public class AprilTagTrackingAction extends Action {
             this.setTargetTx = txVal;
             this.pidController.reset(this.setTargetTx);
         }
+        this.lastDist = 0;
     }
 
     @Override
@@ -115,8 +116,14 @@ public class AprilTagTrackingAction extends Action {
                 // tx < 0 means target is to the left
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
                 if (detectionRet == null) {
-                    if (this.turretTurningEnabled) {
-                        this.robot.turnTurret(0);
+                    if (this.turretTurningEnabled && this.lastDist == 0) {
+                        //this.robot.turnTurret(0);
+                        if (this.robot.turretMotor.getCurrentPosition() > 0) {
+                            this.robot.turnTurret(-0.3);
+                        }
+                        if (this.robot.turretMotor.getCurrentPosition() < 0) {
+                            this.robot.turnTurret(0.3);
+                        }
                     }
                     return false;
                 }

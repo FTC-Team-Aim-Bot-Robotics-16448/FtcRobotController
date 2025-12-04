@@ -14,6 +14,8 @@ import org.firstinspires.ftc.teamcode.aim.utils.MathUtils;
 import org.firstinspires.ftc.teamcode.aim.utils.Logging;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.function.Supplier;
 
 public class ShooterAction extends Action {
@@ -34,11 +36,17 @@ public class ShooterAction extends Action {
     private double curLlTy = 0;
     public double curLlDist = 0;
     public int shootCount = 0;
+    public int shootOutCount = 0;
     public int shootCountBySensor = 0;
+    public int reachLaunchVel = 0;
 
     public double setShooterVel = 0;
     private double preShooterVel = 0;
     private double curShooterVel = 0;
+
+    // Velocity history tracking
+    private Queue<Double> velocityHistory;
+    private int velocityHistorySize = 2; // Configurable: number of previous velocities to track
 
     // Distance sensor caching
     private double cachedDisSensorValue = 0;
@@ -53,6 +61,9 @@ public class ShooterAction extends Action {
         this.llPipeLineForAiming = llPipeLineForAiming;
         this.aprilTagTrackAct = this.robot.aprilTagTrackAct;
         this.shouldStopLaunchMotor = shouldStopLaunchMotor;
+
+        // Initialize velocity history
+        this.velocityHistory = new LinkedList<>();
 
         if (RobotConfig.shooterPanelsEnabled) {
             try {
@@ -75,6 +86,60 @@ public class ShooterAction extends Action {
     public void enableFixedDisCalMode(double vel) {
         this.disCalMode = DisCalMode.FIXED;
         this.setShooterVel = vel;
+    }
+
+    /**
+     * Set the number of previous velocities to track in history
+     * @param size Number of previous velocities (must be >= 1)
+     */
+    public void setVelocityHistorySize(int size) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Velocity history size must be at least 1");
+        }
+        this.velocityHistorySize = size;
+        // Clear existing history if changing size
+        this.velocityHistory.clear();
+    }
+
+    /**
+     * Update the velocity history with the current velocity
+     * Maintains a rolling window of the most recent velocities
+     */
+    private void updateVelocityHistory(double velocity) {
+        velocityHistory.add(velocity);
+        // Remove oldest value if we exceed the configured size
+        if (velocityHistory.size() > velocityHistorySize) {
+            velocityHistory.poll();
+        }
+    }
+
+    /**
+     * Get a previous velocity from history
+     * @param index 0 = most recent previous, 1 = second most recent, etc.
+     * @return The velocity at that index, or 0.0 if not available
+     */
+    public double getPreviousVelocity(int index) {
+        if (index < 0 || index >= velocityHistory.size()) {
+            return 0.0;
+        }
+        // Convert queue to array to access by index
+        Double[] historyArray = velocityHistory.toArray(new Double[0]);
+        // Most recent is at the end, so reverse the index
+        return historyArray[historyArray.length - 1 - index];
+    }
+
+    /**
+     * Get all previous velocities as an array
+     * @return Array of previous velocities, [0] = most recent
+     */
+    public double[] getAllPreviousVelocities() {
+        Double[] historyArray = velocityHistory.toArray(new Double[0]);
+        double[] result = new double[historyArray.length];
+        // Reverse the array so index 0 is the most recent
+        for (int i = 0; i < historyArray.length; i++) {
+            result[i] = historyArray[historyArray.length - 1 - i];
+        }
+        return result;
     }
 
     private double readDisSensor() {
@@ -103,6 +168,8 @@ public class ShooterAction extends Action {
             }
         }
 
+        // Update velocity history
+        updateVelocityHistory(this.curShooterVel);
         this.preShooterVel = this.curShooterVel;
         return ret;
     }
@@ -133,7 +200,7 @@ public class ShooterAction extends Action {
             seqAction.addAction(this.shootStartAction());
         } else if (this.disCalMode == DisCalMode.FIXED) {
             //seqAction.addAction(this.shootStartAndAimingAction());
-           // seqAction.addAction(this.waitingForAiming());
+            seqAction.addAction(this.waitingForAiming());
             //seqAction.addAction(this.shootStartAction());
         }
 
@@ -184,10 +251,17 @@ public class ShooterAction extends Action {
                         ret = true;
                         break;
                     }
-                    if (this.curShooterVel < this.preShooterVel &&
-                            (this.preShooterVel - this.curShooterVel) / this.preShooterVel >= RobotConfig.shooterMotorCompressionPer) {
-                        ret = true;
-                        this.shootCount++;
+                    // Check current velocity against all previous velocities in history
+                    double[] previousVels = this.getAllPreviousVelocities();
+                    for (double prevVel : previousVels) {
+                        if (this.curShooterVel < prevVel &&
+                                (prevVel - this.curShooterVel) / prevVel >= RobotConfig.shooterMotorCompressionPer) {
+                            ret = true;
+                            this.shootCount++;
+                            break;
+                        }
+                    }
+                    if (ret) {
                         break;
                     }
                 }
@@ -195,6 +269,7 @@ public class ShooterAction extends Action {
             } else {
                 double ballDistance = this.cachedDisSensorValue;
                 if (ballDistance >= 17) {
+                    this.shootOutCount++;
                     return true;
                 }
             }
@@ -206,8 +281,12 @@ public class ShooterAction extends Action {
 
     private Action waitingForLaunchMotorSpeed() {
         Supplier<Boolean> runFunc = () -> {
-            return this.robot.launchMotor.getVelocity() >= setShooterVel - 25 &&
-                   this.robot.launchMotor.getVelocity() <= setShooterVel + 25;
+            boolean ret = (this.robot.launchMotor.getVelocity() >= setShooterVel - 25 &&
+                   this.robot.launchMotor.getVelocity() <= setShooterVel + 25);
+            if (ret) {
+                this.reachLaunchVel++;
+            }
+            return ret;
         };
         Action act = new CommonAction("waitingLaunchMotor", runFunc);
         return new EitherOneAction("waitingLaunchMotor", act, new SleepAction("timeout", 2000));
@@ -244,7 +323,8 @@ public class ShooterAction extends Action {
             return true;
         };
         Action step1Act = new CommonAction("ShootStart", step1Func);
-        return  new ActionWithDelay("ShootStep1", step1Act, 1000);
+        //return  new ActionWithDelay("ShootStep1", step1Act, 1000);
+        return step1Act;
     }
 
     /*private Action shootStartAndAimingAction() {

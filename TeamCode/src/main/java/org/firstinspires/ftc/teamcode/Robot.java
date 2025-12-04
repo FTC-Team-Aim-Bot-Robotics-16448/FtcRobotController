@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import com.pedropathing.follower.Follower;
@@ -131,6 +132,11 @@ public class Robot {
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        PIDFCoefficients pidf = launchMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        pidf.f = 17.6;
+        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);;
+
 
         leftLaunchAngle.setPosition(1);
 

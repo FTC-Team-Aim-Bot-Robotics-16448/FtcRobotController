@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.actions.ShooterAction;
@@ -167,10 +169,19 @@ public class BlueTeleOp extends LinearOpMode {
                 telemetry.addData("Shooter Ty:Tx", "%f:%f",
                         this.shootAction.aprilTagTrackAct.getTy(), this.shootAction.aprilTagTrackAct.getTx());
                 telemetry.addData("Shooter Dis to goal", "%f", this.shootAction.curLlDist);
-                telemetry.addData("Shooter count", "%d:%d", this.shootAction.shootCount, this.shootAction.shootCountBySensor);
+                telemetry.addData("Shooter count", "%d:%d:%d",
+                        this.shootAction.shootCount, this.shootAction.shootCountBySensor,
+                        this.shootAction.shootOutCount);
+                telemetry.addData("Shooter reach vel", "%d", this.shootAction.reachLaunchVel);
                 telemetry.addData("Shooter Set Vel", "%f", this.shootAction.setShooterVel);
                  //telemetry.addData("Shooter:", this.shootAction.toString());
             }
+
+            /*PIDFCoefficients pidf = this.robot.launchMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+            telemetry.addData("Kp", pidf.p);
+            telemetry.addData("Ki", pidf.i);
+            telemetry.addData("Kd", pidf.d);
+            telemetry.addData("Kf", pidf.f);*/
 
             telemetry.addData("In far zone", "%b", this.robot.isInFarZone());
             if (this.robot.aprilTagTrackAct != null) {

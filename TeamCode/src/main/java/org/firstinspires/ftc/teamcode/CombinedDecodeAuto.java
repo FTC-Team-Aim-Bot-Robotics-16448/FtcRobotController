@@ -8,6 +8,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
@@ -57,18 +58,25 @@ public class CombinedDecodeAuto extends LinearOpMode {
     private void initPos() {
         startPose = getPose(new Pose(126.1, 121, Math.toRadians(37))); // Start Pose of our robot.
         startPose1 = getPose(new Pose(88, 136, Math.toRadians(90)));
-        startPose2 = getPose(new Pose(88, 136, Math.toRadians(90)));
+        startPose2 = getPose(new Pose(88, 8, Math.toRadians(90)));
 
         gatePose = getPose(new Pose(130, 69.41226215644821, Math.toRadians(90)));
         scorePose = getPose(new Pose(83.3, 92.3, Math.toRadians(45))); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-        scorePose1 = getPose(new Pose(83.3, 92.3, Math.toRadians(45)));
+        scorePose1 = getPose(new Pose(88, 15, Math.toRadians(90)));
 
         start1Pose = getPose(new Pose(100, 83.41649048625793, Math.toRadians(0)));
         pickup1Pose = getPose(new Pose(125.73361522198732, 83.41649048625793, Math.toRadians(0))); // Highest (First Set) of Artifacts from the Spike Mark.
         start2Pose = getPose(new Pose(100, 58.7568710359408, Math.toRadians(0)));
         pickup2Pose = getPose(new Pose(125.73361522198732, 59.36575052854123, Math.toRadians(0))); // Middle (Second Set) of Artifacts from the Spike Mark.
-        start3Pose = getPose(new Pose(105.03171247357295, 35.315010570824526, Math.toRadians(0)));
+        start3Pose = getPose(new Pose(100, 35.315010570824526, Math.toRadians(0)));
         pickup3Pose = getPose(new Pose(125.4291754756871, 35.315010570824526, Math.toRadians(0))); // Lowest (Third Set) of Artifacts from the Spike Mark.
+
+        if (this.startPoseId == 2) {
+            startPose = startPose1;
+        } else if (this.startPoseId == 3) {
+            startPose = startPose2;
+            scorePose = scorePose1;
+        }
     }
 
     private void selectMenu() {
@@ -88,12 +96,12 @@ public class CombinedDecodeAuto extends LinearOpMode {
         menu.addMenuItem("Red/CloseStart2/2line");
         menu.addMenuItem("Red/CloseStart2/1line");
 
-        menu.addMenuItem("Blue/CloseStart3/3line");
-        menu.addMenuItem("Blue/CloseStart3/2line");
-        menu.addMenuItem("Blue/CloseStart3/1line");
-        menu.addMenuItem("Red/CloseStart3/3line");
-        menu.addMenuItem("Red/CloseStart3/2line");
-        menu.addMenuItem("Red/CloseStart3/1line");
+        menu.addMenuItem("Blue/FarStart/3line");
+        menu.addMenuItem("Blue/FarStart/2line");
+        menu.addMenuItem("Blue/FarStart/1line");
+        menu.addMenuItem("Red/FarStart/3line");
+        menu.addMenuItem("Red/FarStart/2line");
+        menu.addMenuItem("Red/FarStart/1line");
 
         telemetry.addLine("Menu Initialized");
         telemetry.addLine("Use gamepad to select options");
@@ -128,15 +136,12 @@ public class CombinedDecodeAuto extends LinearOpMode {
                     break;
                 case "CloseStart2":
                     startPoseId = 2;
-                    this.startPose = this.startPose1;
-                    break;
-                case "CloseStart3":
-                    startPoseId = 3;
-                    this.startPose = this.startPose2;
-                    this.scorePose = this.scorePose1;
+                    //this.startPose = this.startPose1;
                     break;
                 case "FarStart":
                     startPoseId = 3;
+                    //this.startPose = this.startPose2;
+                    //this.scorePose = this.scorePose1;
                     break;
                 case "3line":
                     this.intakeLines = "123";
@@ -275,11 +280,24 @@ public class CombinedDecodeAuto extends LinearOpMode {
     Action shootAct() {
         if (RobotConfig.shooterEnabled) {
             ShooterAction act = this.robot.createShooterAction(goalAprilTagPipeLine, true);
-            act.enableFixedDisCalMode(1180);
+            if (this.startPoseId == 3) {
+                act.enableFixedDisCalMode(1612);
+            } else {
+                act.enableFixedDisCalMode(1180);
+            }
             return act;
         } else {
             return new SleepAction("sleep", 10000);
         }
+    }
+
+    Action resetTurretPosAct() {
+        Supplier<Boolean> step1Func = () -> {
+            this.robot.turretPosReset();
+            return true;
+        };
+        Action act2 = new CommonAction("resetTurret", step1Func);
+        return act2;
     }
 
     Action createFinalAction(String lines, boolean openGate) {
@@ -289,7 +307,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
 
         SeqAction seqAct = new SeqAction("final");
         // preload shoot
-        seqAct.addAction(followToScorePoseAct(0.5));
+        seqAct.addAction(followToScorePoseAct(0.8));
         seqAct.addAction(shootAct());
 
         // lines format is like "123", "12"
@@ -302,6 +320,7 @@ public class CombinedDecodeAuto extends LinearOpMode {
             }
             seqAct.addAction(followToScorePoseAct(0.9));
             seqAct.addAction(shootAct());
+            //seqAct.addAction(resetTurretPosAct());
         }
 /*
         // first line intake, open door and shoot
