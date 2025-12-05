@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import com.pedropathing.follower.Follower;
@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
 import org.firstinspires.ftc.teamcode.actions.*;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import com.bylazar.utils.LoopTimer;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
@@ -40,7 +39,9 @@ public class Robot {
     public Servo leftLaunchAngle, rightLaunchAngle;
     public DistanceSensor intakeDistSensor;
     public DistanceSensor shootDistSensor;
+
     public AprilTagTrackingAction aprilTagTrackAct = null;
+    public TurretMotorRestAction turretMotorRstAct = null;
 
     private void initImu() {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
@@ -132,7 +133,13 @@ public class Robot {
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        PIDFCoefficients pidf = launchMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        pidf.f = 17.6;
+        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);;
+
         leftLaunchAngle.setPosition(1);
+
+        this.turretMotorRstAct = new TurretMotorRestAction(this);
 
 
     }
@@ -162,6 +169,7 @@ public class Robot {
     public void start(int llPipeline) {
         if (RobotConfig.shooterEnabled) {
             leftLaunchAngle.setPosition(0.6);
+            this.turretMotorRstAct.start();
         }
         if (RobotConfig.cameraEnabled && llPipeline >= 0) {
             this.aprilTagTrackAct = this.createAprilTagTrackingAction(llPipeline);
@@ -238,7 +246,7 @@ public class Robot {
     public void turnTurret(double turnPower) {
         if (this.turretMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
             this.turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.turretMotor.setPower(0);
+           // this.turretMotor.setPower(0);
         }
         int pos = this.turretMotor.getCurrentPosition();
         /*if ((pos < -200 && turnPower < 0) ||
@@ -272,6 +280,7 @@ public class Robot {
         if (manualDriveEnabled) {
             handleRobotMove();
         }
+        this.turretMotorRstAct.update();
         if (RobotConfig.cameraEnabled) {
             vision.update();
             if (this.aprilTagTrackAct != null) {

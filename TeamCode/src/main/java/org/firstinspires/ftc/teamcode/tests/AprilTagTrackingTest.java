@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.Robot;
 
 @TeleOp
+@Disabled
 public class AprilTagTrackingTest extends LinearOpMode {
     private Robot robot = new Robot();
     private Button startButton = new Button();
@@ -63,6 +65,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
         waitForStart();
 
         robot.start(-1);
+        robot.turretMotorRstAct.enableReset(false);
 
         while (opModeIsActive()) {
             robot.update();
@@ -71,7 +74,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
             // Start tracking when B button is pressed
             this.startButton.update(this.gamepad1.b);
             if (this.startButton.isPressed()) {
-                startAprilTagTracking(1);
+                startAprilTagTracking(0);
             }
 
             // Stop tracking when X button is pressed
