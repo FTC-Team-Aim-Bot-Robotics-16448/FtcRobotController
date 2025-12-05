@@ -74,7 +74,7 @@ public class TurretMotorRestAction extends Action {
 
                 if (!this.resetEnabled) {
                     // PID is disabled, stop the motor
-                    this.robot.turretMotor.setPower(0);
+                    //this.robot.turretMotor.setPower(0);
                     break;
                 }
 
