@@ -10,6 +10,17 @@ public class Button {
     private boolean toggleOff = false;
     private boolean held = false;
 
+    public void reset() {
+       boolean lastState = false;
+       boolean toggleState = false;
+
+       boolean pressed = false;
+       boolean released = false;
+       boolean toggleOn = false;
+       boolean toggleOff = false;
+       boolean held = false;
+    }
+
     public void update(boolean currentState) {
         pressed = false;
         toggleOn = false;

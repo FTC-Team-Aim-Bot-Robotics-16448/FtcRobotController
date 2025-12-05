@@ -1,13 +1,33 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import com.bylazar.panels.Panels;
+//import com.bylazar.panels.TelemetryManager;
+import com.bylazar.utils.LoopTimer;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 
 import org.firstinspires.ftc.teamcode.aim.components.Menu;
 
 @TeleOp(name = "Menu Test", group = "Test")
+@Disabled
 public class MenuTestTeleOp extends LinearOpMode {
     private Menu menu;
+
+    public static double ticksIncrement = 0.025;
+
+    private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+    private final LoopTimer timer = new LoopTimer();
+
+    private double ticks = 0.0;
+    private double wave = 0.0;
+    private double wave2 = 0.0;
+
+    private final double constant = Math.sin(0.0);
+    private final double constant2 = Math.sin(0.0) + 5;
 
     @Override
     public void runOpMode() {
@@ -35,16 +55,38 @@ public class MenuTestTeleOp extends LinearOpMode {
         telemetry.addLine("Press Start to begin");
         telemetry.update();
 
+        panelsTelemetry.debug("Init was ran!");
+        panelsTelemetry.update(telemetry);
+
+        ticks = 0.0;
+        wave = 0.0;
+        wave2 = 0.0;
+
         waitForStart();
 
-        if (selectedOption != null) {
-            telemetry.clear();
-            telemetry.addData("Selected Option", selectedOption);
-            telemetry.addLine("---");
-            telemetry.addLine("Menu selection complete!");
-            telemetry.update();
+        while (opModeIsActive()) {
+            timer.start();
 
-            sleep(3000);
+            ticks += ticksIncrement;
+            wave = Math.sin(ticks);
+            wave2 = Math.sin(ticks + Math.PI) * 2;
+
+            panelsTelemetry.debug("wave: " + wave);
+            panelsTelemetry.debug("wave2: " + wave2);
+            panelsTelemetry.debug("constant: " + constant);
+            panelsTelemetry.debug("constant2: " + constant2);
+
+            panelsTelemetry.addData("wave", wave);
+            panelsTelemetry.addData("wave2", wave2);
+            panelsTelemetry.addData("constant", constant);
+            panelsTelemetry.addData("constant2", constant2);
+
+            //panelsTelemetry.debug("LoopTime: " + timer.ms + "ms / " + timer.hz + "Hz");
+
+            panelsTelemetry.update(telemetry);
+            timer.end();
         }
+
+
     }
 }
