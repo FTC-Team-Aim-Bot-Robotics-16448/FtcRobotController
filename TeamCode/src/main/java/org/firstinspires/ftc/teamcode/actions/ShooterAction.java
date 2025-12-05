@@ -46,7 +46,7 @@ public class ShooterAction extends Action {
 
     // Velocity history tracking
     private Queue<Double> velocityHistory;
-    private int velocityHistorySize = 2; // Configurable: number of previous velocities to track
+    private int velocityHistorySize = 3; // Configurable: number of previous velocities to track
 
     // Distance sensor caching
     private double cachedDisSensorValue = 0;
@@ -89,19 +89,6 @@ public class ShooterAction extends Action {
     }
 
     /**
-     * Set the number of previous velocities to track in history
-     * @param size Number of previous velocities (must be >= 1)
-     */
-    public void setVelocityHistorySize(int size) {
-        if (size < 1) {
-            throw new IllegalArgumentException("Velocity history size must be at least 1");
-        }
-        this.velocityHistorySize = size;
-        // Clear existing history if changing size
-        this.velocityHistory.clear();
-    }
-
-    /**
      * Update the velocity history with the current velocity
      * Maintains a rolling window of the most recent velocities
      */
@@ -113,20 +100,6 @@ public class ShooterAction extends Action {
         }
     }
 
-    /**
-     * Get a previous velocity from history
-     * @param index 0 = most recent previous, 1 = second most recent, etc.
-     * @return The velocity at that index, or 0.0 if not available
-     */
-    public double getPreviousVelocity(int index) {
-        if (index < 0 || index >= velocityHistory.size()) {
-            return 0.0;
-        }
-        // Convert queue to array to access by index
-        Double[] historyArray = velocityHistory.toArray(new Double[0]);
-        // Most recent is at the end, so reverse the index
-        return historyArray[historyArray.length - 1 - index];
-    }
 
     /**
      * Get all previous velocities as an array
@@ -154,7 +127,11 @@ public class ShooterAction extends Action {
 
     @Override
     public boolean run() {
-        this.aprilTagTrackAct.enableTurretTurning(true);
+        if (!this.isStarted()) {
+            this.robot.turretMotorRstAct.enableReset(false);
+            this.aprilTagTrackAct.enableTurretTurning(true);
+            this.markStarted();
+        }
         this.curShooterVel = this.robot.launchMotor.getVelocity();
         this.readDisSensor();
 
@@ -190,6 +167,7 @@ public class ShooterAction extends Action {
         if (this.shouldStopLaunchMotor) {
             this.robot.launchMotor.setPower(0);
         }
+        this.robot.turretMotorRstAct.enableReset(true);
     }
 
     private SeqAction shootAllSteps() {
@@ -258,6 +236,7 @@ public class ShooterAction extends Action {
                                 (prevVel - this.curShooterVel) / prevVel >= RobotConfig.shooterMotorCompressionPer) {
                             ret = true;
                             this.shootCount++;
+                            this.velocityHistory.clear();
                             break;
                         }
                     }

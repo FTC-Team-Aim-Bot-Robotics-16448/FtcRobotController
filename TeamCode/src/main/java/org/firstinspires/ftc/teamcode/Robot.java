@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -19,7 +18,6 @@ import org.firstinspires.ftc.teamcode.aim.drive.MecanumIMUDrive;
 import org.firstinspires.ftc.teamcode.actions.*;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import com.bylazar.utils.LoopTimer;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
@@ -41,7 +39,9 @@ public class Robot {
     public Servo leftLaunchAngle, rightLaunchAngle;
     public DistanceSensor intakeDistSensor;
     public DistanceSensor shootDistSensor;
+
     public AprilTagTrackingAction aprilTagTrackAct = null;
+    public TurretMotorRestAction turretMotorRstAct = null;
 
     private void initImu() {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(RobotConfig.logoDirection, RobotConfig.usbDirection);
@@ -137,8 +137,9 @@ public class Robot {
         pidf.f = 17.6;
         launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);;
 
-
         leftLaunchAngle.setPosition(1);
+
+        this.turretMotorRstAct = new TurretMotorRestAction(this);
 
 
     }
@@ -168,6 +169,7 @@ public class Robot {
     public void start(int llPipeline) {
         if (RobotConfig.shooterEnabled) {
             leftLaunchAngle.setPosition(0.6);
+            this.turretMotorRstAct.start();
         }
         if (RobotConfig.cameraEnabled && llPipeline >= 0) {
             this.aprilTagTrackAct = this.createAprilTagTrackingAction(llPipeline);
@@ -278,6 +280,7 @@ public class Robot {
         if (manualDriveEnabled) {
             handleRobotMove();
         }
+        this.turretMotorRstAct.update();
         if (RobotConfig.cameraEnabled) {
             vision.update();
             if (this.aprilTagTrackAct != null) {

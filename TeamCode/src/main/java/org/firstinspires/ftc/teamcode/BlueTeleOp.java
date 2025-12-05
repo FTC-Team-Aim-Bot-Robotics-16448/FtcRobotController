@@ -144,7 +144,7 @@ public class BlueTeleOp extends LinearOpMode {
             // stop turret turning to left
             if (turretLeftButton1.isReleased() || turretLeftButton2.isReleased()) {
                 this.robot.turnTurret(0);
-                this.robot.turretPosReset();
+                //this.robot.turretPosReset();
             }
 
             // turn turret to right
@@ -155,7 +155,7 @@ public class BlueTeleOp extends LinearOpMode {
             // stop turret turning to right
             if (turretRightButton1.isReleased() || turretRightButton2.isReleased() ) {
                 this.robot.turnTurret(0);
-                this.robot.turretPosReset();
+                //this.robot.turretPosReset();
             }
 
             if (this.intakeAction != null) {
@@ -190,6 +190,9 @@ public class BlueTeleOp extends LinearOpMode {
             }
             telemetry.addData("Ball Dist", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
             telemetry.addData("Turret pos:", "%d", this.robot.turretMotor.getCurrentPosition());
+            telemetry.addData("Turret PID:", "%f:%b",
+                    this.robot.turretMotorRstAct.getLastPower(),
+                    this.robot.turretMotorRstAct.resetEnabled);
             telemetry.addData("Launch Motor:", "%f", this.robot.launchMotor.getVelocity());
             telemetry.addData("X:Y", "%f:%f: %f",
                     robot.follower.getPose().getX(), robot.follower.getPose().getY(),

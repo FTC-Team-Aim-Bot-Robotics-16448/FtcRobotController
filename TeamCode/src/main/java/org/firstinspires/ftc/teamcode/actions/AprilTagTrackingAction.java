@@ -87,6 +87,12 @@ public class AprilTagTrackingAction extends Action {
             } else {
                 txVal = 2;
             }
+        } else {
+            if (this.aprilTagId == 24) {
+                txVal = -1.5;
+            } else {
+                txVal = 1.5;
+            }
         }
         if (this.setTargetTx != txVal) {
             this.setTargetTx = txVal;
@@ -116,7 +122,7 @@ public class AprilTagTrackingAction extends Action {
                 // tx < 0 means target is to the left
                 Vision.ObjectDetectionResult detectionRet = this.robot.vision.getObjectDetectionResult();
                 if (detectionRet == null) {
-                    if (this.turretTurningEnabled && this.lastDist == 0) {
+                    /*if (this.turretTurningEnabled && this.lastDist == 0) {
                         //this.robot.turnTurret(0);
                         if (this.robot.turretMotor.getCurrentPosition() > 0) {
                             this.robot.turnTurret(-0.3);
@@ -124,7 +130,8 @@ public class AprilTagTrackingAction extends Action {
                         if (this.robot.turretMotor.getCurrentPosition() < 0) {
                             this.robot.turnTurret(0.3);
                         }
-                    }
+                    }*/
+                    this.robot.turnTurret(0);
                     return false;
                 }
                 double tx =  detectionRet.tx;
