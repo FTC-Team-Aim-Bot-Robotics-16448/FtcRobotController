@@ -16,7 +16,7 @@ public class TurretMotorRestAction extends Action {
     private double currentPosition = 0;
     private double targetPosition = 0;
     public boolean resetEnabled = true;
-    private static final double POSITION_TOLERANCE = 5.0; // Same as PID tolerance
+    private static final double POSITION_TOLERANCE = 50; // Same as PID tolerance
 
     public TurretMotorRestAction(Robot robot) {
         super("TurretMotorRest");

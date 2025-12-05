@@ -89,9 +89,9 @@ public class AprilTagTrackingAction extends Action {
             }
         } else {
             if (this.aprilTagId == 24) {
-                txVal = -1.5;
+                txVal = -1.7;
             } else {
-                txVal = 1.5;
+                txVal = 1.7;
             }
         }
         if (this.setTargetTx != txVal) {

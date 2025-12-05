@@ -8,6 +8,7 @@ import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 
 @Autonomous(name = "Example Auto", group = "Examples")
+@Disabled
 public class RedAuto extends LinearOpMode {
 
     private Robot robot = new Robot();

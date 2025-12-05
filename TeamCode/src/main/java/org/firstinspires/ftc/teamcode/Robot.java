@@ -246,7 +246,7 @@ public class Robot {
     public void turnTurret(double turnPower) {
         if (this.turretMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
             this.turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.turretMotor.setPower(0);
+           // this.turretMotor.setPower(0);
         }
         int pos = this.turretMotor.getCurrentPosition();
         /*if ((pos < -200 && turnPower < 0) ||

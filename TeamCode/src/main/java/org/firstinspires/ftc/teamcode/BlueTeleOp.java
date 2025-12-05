@@ -54,6 +54,7 @@ public class BlueTeleOp extends LinearOpMode {
         robot.enableManualDrive();
         robot.start(getApriltagAimingPipeline());
         //robot.aprilTagTrackAct.enableTurretTurning(true);
+        robot.turretMotorRstAct.enableReset(false);
 
         int i = 0;
         while (opModeIsActive()) {
@@ -137,24 +138,28 @@ public class BlueTeleOp extends LinearOpMode {
             }
 
             // turn turret to left
-            if (turretLeftButton1.isPressed() || turretLeftButton2.isPressed()) {
-                this.robot.turnTurret(0.5);
+            if (turretLeftButton1.isHeld() || turretLeftButton2.isHeld()) {
+                this.robot.turretMotorRstAct.enableReset(false);
+                this.robot.turnTurret(0.3);
             }
 
             // stop turret turning to left
             if (turretLeftButton1.isReleased() || turretLeftButton2.isReleased()) {
                 this.robot.turnTurret(0);
+                this.robot.turretMotorRstAct.enableReset(true);
                 //this.robot.turretPosReset();
             }
 
             // turn turret to right
-            if (turretRightButton1.isPressed() || turretRightButton2.isPressed()) {
-                this.robot.turnTurret(-0.5);
+            if (turretRightButton1.isHeld() || turretRightButton2.isHeld()) {
+                this.robot.turretMotorRstAct.enableReset(false);
+                this.robot.turnTurret(-0.3);
             }
 
             // stop turret turning to right
             if (turretRightButton1.isReleased() || turretRightButton2.isReleased() ) {
                 this.robot.turnTurret(0);
+                this.robot.turretMotorRstAct.enableReset(true);
                 //this.robot.turretPosReset();
             }
 
@@ -163,7 +168,7 @@ public class BlueTeleOp extends LinearOpMode {
             }
 
             // Just in case, this might not be needed
-            this.robot.turretSafeCheckAndStop();
+            //this.robot.turretSafeCheckAndStop();
 
             if (this.shootAction != null) {
                 telemetry.addData("Shooter Ty:Tx", "%f:%f",
@@ -183,12 +188,15 @@ public class BlueTeleOp extends LinearOpMode {
             telemetry.addData("Kd", pidf.d);
             telemetry.addData("Kf", pidf.f);*/
 
+            telemetry.addData("leftangle", "%f", this.robot.leftLaunchAngle.getPosition());
             telemetry.addData("In far zone", "%b", this.robot.isInFarZone());
             if (this.robot.aprilTagTrackAct != null) {
                 telemetry.addData("Shooter Dis to goal", "%f", this.robot.aprilTagTrackAct.getDistance());
                 telemetry.addData("April Tag Id", "%d", this.robot.aprilTagTrackAct.getAprilTagId());
             }
-            telemetry.addData("Ball Dist", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
+            telemetry.addData("Dist sensor in hood", "%f", this.robot.shootDistSensor.getDistance(DistanceUnit.CM));
+            telemetry.addData("Dist sensor intake", "%f", this.robot.intakeDistSensor.getDistance(DistanceUnit.CM));
+
             telemetry.addData("Turret pos:", "%d", this.robot.turretMotor.getCurrentPosition());
             telemetry.addData("Turret PID:", "%f:%b",
                     this.robot.turretMotorRstAct.getLastPower(),
