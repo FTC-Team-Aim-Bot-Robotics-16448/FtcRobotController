@@ -43,6 +43,5 @@ dependencies {
     //implementation files('lib/core-2.0.3.jar')
     //implementation files('lib/ftc-debug.aar')
     //implementation(name: 'ftc-debug', ext: 'aar')
-    implementation "com.bylazar:fullpanels:1.0.10"
-    implementation "com.bylazar:graph:1.0.4"
+    //implementation "com.bylazar:fullpanels:1.0.6"
 }

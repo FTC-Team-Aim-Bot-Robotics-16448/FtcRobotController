@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.tests;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,7 +14,6 @@ import org.firstinspires.ftc.teamcode.aim.action.ActionWithDelay;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp
-@Disabled
 public class PetroTest extends LinearOpMode {
     //private Follower follower;
     //private final Pose startPose = new Pose(0, 0, Math.toRadians(90));

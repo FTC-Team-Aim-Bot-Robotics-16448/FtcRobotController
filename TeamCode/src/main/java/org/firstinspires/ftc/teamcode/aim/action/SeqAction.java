@@ -35,14 +35,12 @@ public class SeqAction extends Action {
         if (actions.isEmpty()) {
             return true;
         }
-        //while(!actions.isEmpty()) {
-            Action firstAction = actions.get(0);
-            boolean done = firstAction.run();
-            if (!done) {
-                return false;
-            }
-            actions.remove(0);
-        //}
+        Action firstAction = actions.get(0);
+        boolean done = firstAction.run();
+        if (!done) {
+            return false;
+        }
+        actions.remove(0);
         if (actions.isEmpty()) {
             return true;
         }

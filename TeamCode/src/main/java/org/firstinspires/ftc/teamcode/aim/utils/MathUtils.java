@@ -49,18 +49,4 @@ public class MathUtils {
 
         return new double[]{targetX, targetY, targetHeading};
     }
-
-    /**
-     * Calculate the Euclidean distance between two points
-     * @param x1 X coordinate of first point
-     * @param y1 Y coordinate of first point
-     * @param x2 X coordinate of second point
-     * @param y2 Y coordinate of second point
-     * @return distance between the two points
-     */
-    public static double twoPointDistance(double x1, double y1, double x2, double y2) {
-        double dx = x2 - x1;
-        double dy = y2 - y1;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
 }

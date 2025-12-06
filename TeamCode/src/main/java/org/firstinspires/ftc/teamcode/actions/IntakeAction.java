@@ -1,6 +1,4 @@
 package org.firstinspires.ftc.teamcode.actions;
-import com.pedropathing.util.Timer;
-
 import org.firstinspires.ftc.teamcode.aim.action.*;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -14,14 +12,11 @@ public class IntakeAction extends Action {
     private double triggeedDistance = -1;
     private boolean distSensorReady = false;
     private boolean reverse = false;
-    private boolean stopping = false;
-    private Timer stopTimer;
 
     public IntakeAction(Robot robot, boolean reverse) {
         super("Intake");
         this.robot = robot;
         this.reverse = reverse;
-        this.stopTimer = new Timer();
     }
 
     public String toString() {
@@ -43,13 +38,6 @@ public class IntakeAction extends Action {
         if (this.reverse) {
             return reverseRun();
         }
-
-        if (this.stopping) {
-            //if (stopTimer.getElapsedTimeSeconds() > 0.3) {
-                this.robot.intakeMotor.setPower(0);
-                this.stopping = false;
-            //}
-        }
         if (!this.distSensorReady) {
             double dist = this.robot.intakeDistSensor.getDistance(DistanceUnit.CM);
             if (dist > 10 && dist < 50) {
@@ -62,16 +50,9 @@ public class IntakeAction extends Action {
         this.robot.optakeMotor.setPower(1);
         if (this.ballDistance > 0 && this.ballDistance < 18) {
             this.triggeedDistance = this.ballDistance;
-            if (this.stopping) {
-                this.stopping = false;
-            }
             this.robot.intakeMotor.setPower(-1.0);
         } else {
-            //this.robot.intakeMotor.setPower(0);
-            if (!this.stopping) {
-                this.stopping = true;
-                this.stopTimer.resetTimer();
-            }
+            this.robot.intakeMotor.setPower(0);
         }
         return false;
     }
