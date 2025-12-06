@@ -8,7 +8,6 @@ import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -16,7 +15,6 @@ import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 
 @Autonomous(name = "Example Auto", group = "Examples")
-@Disabled
 public class RedAuto extends LinearOpMode {
 
     private Robot robot = new Robot();
@@ -118,7 +116,7 @@ public class RedAuto extends LinearOpMode {
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1, true);
+                    this.shootAction = this.robot.createShooterAction(1);
                     this.shootAction.start();
                     setPathState(11);
                 }
@@ -160,7 +158,7 @@ public class RedAuto extends LinearOpMode {
                 break;
             case 17:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1, true);
+                    this.shootAction = this.robot.createShooterAction(1);
                     this.shootAction.start();
                     setPathState(18);
                 }
@@ -193,7 +191,7 @@ public class RedAuto extends LinearOpMode {
                 }
             case 23:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1, true);
+                    this.shootAction = this.robot.createShooterAction(1);
                     this.shootAction.start();
                     setPathState(24);
                 }
@@ -226,7 +224,7 @@ public class RedAuto extends LinearOpMode {
                 }
             case 33:
                 if (!follower.isBusy()) {
-                    this.shootAction = this.robot.createShooterAction(1, true);
+                    this.shootAction = this.robot.createShooterAction(1);
                     this.shootAction.start();
                     setPathState(34);
                 }
@@ -308,7 +306,7 @@ public class RedAuto extends LinearOpMode {
 
         opmodeTimer.resetTimer();
         setPathState(0);
-        robot.start(-1);
+        robot.start();
 
         while (opModeIsActive()) {
             robot.update();
