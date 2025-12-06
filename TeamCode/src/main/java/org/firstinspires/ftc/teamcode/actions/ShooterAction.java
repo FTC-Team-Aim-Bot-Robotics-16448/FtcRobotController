@@ -41,11 +41,8 @@ public class ShooterAction extends Action {
     @Override
     public boolean run() {
         this.aprilTagTrackAct.run();
-        this.robot.opMode.telemetry.addData("Shooter Dist:", "%f", this.curLlDist);
-        this.robot.opMode.telemetry.addData("Shooter Target Vel:", "%f", this.curShooterVel);
-        this.robot.opMode.telemetry.addData("Shooter Cur Vel:", "%f", this.robot.launchMotor.getVelocity());
-        this.robot.opMode.telemetry.addData("Shooter Decomp Target:", "%f", this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
-
+        //this.robot.opMode.telemetry.addData("Shooter Dis:Velocity:Decom","%f:%f:%f",
+        //        this.curLlDist, this.curShooterVel, this.curShooterVel * RobotConfig.shooterMotorDecompressionPer);
         return this.seqAct.run();
     }
 
@@ -69,30 +66,30 @@ public class ShooterAction extends Action {
         //seqAction.addAction(new SleepAction("stabilize", 500)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
-        seqAction.addAction(this.setIntakePower(0, 0));
+        seqAction.addAction(this.setIntakePower(0, 500));
 
         // 2nd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(new SleepAction("stabilize", 100)); // Wait for flywheel to stabilize
+        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
-        seqAction.addAction(this.setIntakePower(0, 0));
+        seqAction.addAction(this.setIntakePower(0, 500));
 
         // 3rd shoot
         seqAction.addAction(this.waitingForLaunchMotorSpeed());
-        seqAction.addAction(new SleepAction("stabilize", 100)); // Wait for flywheel to stabilize
+        seqAction.addAction(new SleepAction("stabilize", 200)); // Wait for flywheel to stabilize
         seqAction.addAction(this.setIntakePower(-0.8, 0));
         seqAction.addAction(this.waitingForLaunchMotorDecompression());
         seqAction.addAction(this.setIntakePower(0, 0));
-       /* seqAction.addAction(this.setIntakePower(-1, 0);
+       /* seqAction.addAction(this.setIntakePower(-1, 0));
         seqAction.addAction(this.waitingForBallInHood(true));
         seqAction.addAction(this.waitingForLaunchMotorSpeed());*/
 
-        /*seqAction.addAction(this.setLaunchPower(-0.55, 0);
+        /*seqAction.addAction(this.setLaunchPower(-0.55, 0));
         seqAction.addAction(this.setIntakePower(0, 200));
         seqAction.addAction(this.setIntakePower(-1, 80));
         seqAction.addAction(this.setLaunchPower(-0.55, 0));*/
-        /*seqAction.addAction(this.setIntakePower(-1, 50);
+        /*seqAction.addAction(this.setIntakePower(-1, 50));
         seqAction.addAction(this.setLaunchPower(0.9, 0));
         seqAction.addAction(this.setIntakePower(0, 60));
         seqAction.addAction(this.setIntakePower(-1, 50));
@@ -188,7 +185,7 @@ public class ShooterAction extends Action {
         double bx = slope * this.curLlTy;
         this.curShooterVel = bx + yInt;*/
 
-        double yInt = 850; //821.1; //1301; //a value in LSRL equation
+        double yInt = 832.5; //821.1; //1301; //a value in LSRL equation
         double slope = 0.2163; //0.2727; //b value in LSRL equation
         double bx = slope * this.curLlDist;
         this.curShooterVel = bx + yInt;

@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.actions.ShooterAction;
 import org.firstinspires.ftc.teamcode.aim.action.Action;
 
-@Autonomous(name = "RedAuto", group = "Examples")
+@Autonomous(name = "Example Auto", group = "Examples")
 public class RedAuto extends LinearOpMode {
 
     private Robot robot = new Robot();
@@ -32,7 +32,7 @@ public class RedAuto extends LinearOpMode {
 
     private final Pose startPose = new Pose(126.1, 121, Math.toRadians(37)); // Start Pose of our robot.
 
-    private final Pose gatePose = new Pose(130, 72.5, Math.toRadians(90));
+    private final Pose gatePose = new Pose(130, 69.41226215644821, Math.toRadians(90));
     private final Pose scorePose = new Pose(83.3, 92.3, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose start1Pose = new Pose(100, 83.41649048625793, Math.toRadians(0));
     private final Pose pickup1Pose = new Pose(128.5, 83.41649048625793, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
@@ -46,7 +46,7 @@ public class RedAuto extends LinearOpMode {
     private PathChain grabStart2, grabPickup2, scorePickup2;
     private PathChain grabStart3, grabPickup3, scorePickup3;
 
-    private final double SCORING_DELAY_SECONDS = 1.0; // 5 seconds delay for scoring actions
+    private final double SCORING_DELAY_SECONDS = 5.0; // 5 seconds delay for scoring actions
     private final double PATH_PAUSE_DELAY_SECONDS = 1.0; // 1 second delay after path completion
 
     public void buildPaths() {
@@ -88,21 +88,18 @@ public class RedAuto extends LinearOpMode {
                 .build();
         /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup2 = follower.pathBuilder()
-                .addPath (new BezierLine(pickup2Pose, scorePose))
+                .addPath(new BezierLine(pickup2Pose, scorePose))
                 .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
                 .build();
 
-        /* This is our grabStart3 PathChain. */
-        grabStart3 = follower.pathBuilder()
+        /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        grabPickup3 = follower.pathBuilder()
+                .setBrakingStart(brakingStart)
                 .addPath(new BezierLine(scorePose, start3Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), start3Pose.getHeading())
-                .build();
-        /* This is our grabPickup3 PathChain. */
-        grabPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(start3Pose, pickup3Pose))
                 .setLinearHeadingInterpolation(start3Pose.getHeading(), pickup3Pose.getHeading())
                 .build();
-
 
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup3 = follower.pathBuilder()
@@ -114,14 +111,19 @@ public class RedAuto extends LinearOpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(scorePreload, 0.9, true);
-                this.shootAction = this.robot.createShooterAction(1);
-                this.shootAction.start();
-                setPathState(11);
+                follower.followPath(scorePreload, 0.5, true);
+                setPathState(1);
+                break;
+            case 1:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(11);
+                }
                 break;
             case 11:
                 this.shootAction.update();
-                if (this.shootAction.isFinished() && !follower.isBusy()) {
+                if (this.shootAction.isFinished()) {
                     follower.followPath(grabStart1, true);
                     setPathState(12);
                 }
@@ -135,33 +137,35 @@ public class RedAuto extends LinearOpMode {
                 }
                 break;
             case 13:
-                this.intakeAction.update();
                 if (!follower.isBusy()) {
                     setPathState(14);
                 }
                 break;
             case 14:
-                this.intakeAction.update();
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     this.intakeAction.stop();
                     setPathState(15);
                 }
-                break;
             case 15: // Initiate openGate
                 follower.followPath(openGate);
                 setPathState(16); // Transition to a new state to wait for openGate to finish
                 break;
-            case 16: // Wait for openGate to complete, then start scorePickup1 and ShooterAction concurrently
+            case 16: // Wait for openGate to complete
                 if (!follower.isBusy()) {
                     follower.followPath(scorePickup1);
-                    this.shootAction = this.robot.createShooterAction(1);
-                    this.shootAction.start();
-                    setPathState(17);
+                    setPathState(17); // Transition to a new state for path pause after openGate
                 }
                 break;
             case 17:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(18);
+                }
+                break;
+            case 18:
                 this.shootAction.update();
-                if (this.shootAction.isFinished() && !follower.isBusy()) {
+                if (this.shootAction.isFinished()) {
                     follower.followPath(grabStart2, true);
                     setPathState(2);
                 }
@@ -175,24 +179,26 @@ public class RedAuto extends LinearOpMode {
                 }
                 break;
             case 21:
-                this.intakeAction.update();
                 if (!follower.isBusy()) {
                     setPathState(22);
                 }
                 break;
             case 22:
-                this.intakeAction.update();
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     this.intakeAction.stop();
                     follower.followPath(scorePickup2);
-                    this.shootAction = this.robot.createShooterAction(1);
-                    this.shootAction.start();
                     setPathState(23);
                 }
-                break;
             case 23:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(24);
+                }
+                break;
+            case 24:
                 this.shootAction.update();
-                if (this.shootAction.isFinished() && !follower.isBusy()) {
+                if (this.shootAction.isFinished()) {
                     follower.followPath(grabStart3, true);
                     setPathState(3);
                 }
@@ -206,28 +212,69 @@ public class RedAuto extends LinearOpMode {
                 }
                 break;
             case 31:
-                this.intakeAction.update();
                 if (!follower.isBusy()) {
                     setPathState(32);
                 }
                 break;
             case 32:
-                this.intakeAction.update();
                 if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
                     this.intakeAction.stop();
                     follower.followPath(scorePickup3);
-                    this.shootAction = this.robot.createShooterAction(1);
-                    this.shootAction.start();
                     setPathState(33);
                 }
-                break;
             case 33:
+                if (!follower.isBusy()) {
+                    this.shootAction = this.robot.createShooterAction(1);
+                    this.shootAction.start();
+                    setPathState(34);
+                }
+                break;
+            case 34:
                 this.shootAction.update();
-                if (this.shootAction.isFinished() && !follower.isBusy()) {
+                if (this.shootAction.isFinished()) {
                     //follower.followPath(grabStart3, true);
                     setPathState(-1);
                 }
                 break;
+           /* case 6:
+                if (!follower.isBusy()) {
+                     // Corrected: After grabPickup2, we score the second pickup
+                    follower.followPath(scorePickup2, true);
+                    setPathState(12); // Transition to a new state for the third delay
+                }
+                break;
+            case 12: // Third non-blocking delay (after scorePickup2)
+                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                    setPathState(7); // After delay, proceed to grab pickup 3
+                }
+                break;
+            case 7:
+                if (!follower.isBusy()) {
+                    setPathState(30); // Transition to a new state for path pause after previous path
+                }
+                break;
+            case 30: // Path pause after previous path, before grabPickup3
+                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
+                     follower.followPath(grabPickup3, true);
+                    setPathState(9);
+                }
+                break;
+            case 9:
+                if (!follower.isBusy()) {
+                    follower.followPath(scorePickup3, true);
+                    setPathState(13); // Transition to a new state for the fourth delay
+                }
+                break;
+            case 13: // Fourth non-blocking delay (after scorePickup3)
+                if (pathTimer.getElapsedTimeSeconds() > SCORING_DELAY_SECONDS) {
+                    setPathState(31); // After delay, proceed to path pause before stopping
+                }
+                break;
+            case 31: // Path pause before stopping
+                if (pathTimer.getElapsedTimeSeconds() > PATH_PAUSE_DELAY_SECONDS) {
+                    setPathState(-1);
+                }
+                break;*/
         }
     }
 
@@ -258,8 +305,8 @@ public class RedAuto extends LinearOpMode {
         waitForStart();
 
         opmodeTimer.resetTimer();
-        robot.start(); // Moved robot.start() here
         setPathState(0);
+        robot.start();
 
         while (opModeIsActive()) {
             robot.update();

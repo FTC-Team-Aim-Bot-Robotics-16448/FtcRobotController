@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.aim.components.Button;
 import org.firstinspires.ftc.teamcode.Robot;
 
 @TeleOp
+@Disabled
 public class AprilTagTrackingTest extends LinearOpMode {
     private Robot robot = new Robot();
     private Button startButton = new Button();
@@ -26,6 +28,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
         }
         this.trackingAction = robot.createAprilTagTrackingAction(llPipeline);
         this.trackingAction.start();
+        this.trackingAction.enableTurretTurning(true);
         telemetry.addData("Status", "AprilTag tracking started");
     }
 
@@ -61,7 +64,8 @@ public class AprilTagTrackingTest extends LinearOpMode {
 
         waitForStart();
 
-        robot.start();
+        robot.start(-1);
+        robot.turretMotorRstAct.enableReset(false);
 
         while (opModeIsActive()) {
             robot.update();
@@ -84,7 +88,7 @@ public class AprilTagTrackingTest extends LinearOpMode {
                     robot.follower.getPose().getX(),
                     robot.follower.getPose().getY(),
                     Math.toDegrees(robot.follower.getHeading()));
-
+            telemetry.addData("Turret pos", this.robot.turretMotor.getCurrentPosition());
             telemetry.update();
         }
     }
